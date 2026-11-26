@@ -13,6 +13,33 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class AmapClientTest {
 
     @Test
+    void bindsSuccessfulProviderResponse() throws IOException {
+        byte[] responseBody = """
+                {"status":"1","province":" 北京市 ","city":"北京市","adcode":"110000"}
+                """.getBytes(StandardCharsets.UTF_8);
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/ip", exchange -> {
+            exchange.sendResponseHeaders(200, responseBody.length);
+            try (var body = exchange.getResponseBody()) {
+                body.write(responseBody);
+            }
+        });
+        server.start();
+
+        try {
+            String endpoint = "http://127.0.0.1:" + server.getAddress().getPort() + "/ip";
+            GeoInfo result = new AmapClient("test-key", endpoint, 1000).query("1.1.1.1");
+
+            assertEquals("中国", result.getCountry());
+            assertEquals("北京市", result.getProvince());
+            assertEquals("北京市", result.getCity());
+            assertEquals("110000", result.getAdcode());
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @Test
     void returnsUnknownGeoInfoWhenProviderRejectsRequest() throws IOException {
         byte[] responseBody = """
                 {"status":"0","info":"INVALID_USER_KEY"}

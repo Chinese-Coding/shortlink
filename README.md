@@ -28,9 +28,9 @@ LinkPilot 是一个基于 Spring Boot 4、Redis、PostgreSQL、ShardingSphere、
 
 | 层级 | 技术 |
 |------|------|
-| 语言 | Java 25 |
+| 语言 | Java 25、Kotlin 2.4.21 |
 | 框架 | Spring Boot 4.2.0 |
-| 构建 | Maven |
+| 构建 | Maven（Java/Kotlin 混合编译） |
 | ORM | MyBatis Plus 3.5.18 |
 | 数据库 | PostgreSQL 19 + ShardingSphere 5.5.3（16 表分片） |
 | 缓存 | Caffeine + Redis + Redisson Bloom Filter |

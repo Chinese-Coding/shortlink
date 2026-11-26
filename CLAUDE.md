@@ -84,7 +84,9 @@ See `.env.example`. Key ones:
 
 ## Conventions
 
-- Lombok everywhere (`@Slf4j`, `@RequiredArgsConstructor`, `@Data`)
+- Java and Kotlin share `src/main/java/` and `src/test/java/`. Maven compiles Kotlin before javac for each source set.
+- Keep the existing JVM signatures when migrating Java callers. Use `@JvmStatic` for Java static entry points and Kotlin annotation use-site targets for mapped fields.
+- Use Lombok in Java (`@Slf4j`, `@RequiredArgsConstructor`, `@Data`) and Kotlin properties and constructors in Kotlin.
 - MyBatis-Plus for DB access (`BaseMapper`, `LambdaQueryWrapper`)
 - 统一响应 `Result<T>`，错误码 `ErrorCode` 枚举
 - DTO/VO 分层：`dto/req/` 请求参数，`vo/` 响应视图
