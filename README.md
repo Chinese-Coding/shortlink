@@ -1,6 +1,6 @@
 # ShortLink
 
-高性能短链接服务，基于 Spring Boot 3 + Redis + ShardingSphere 构建。
+高性能短链接服务，基于 Spring Boot 4 + Redis + ShardingSphere 构建。
 
 ## Features
 
@@ -14,7 +14,7 @@
 
 ## 简历描述
 
-LinkPilot 是一个基于 Spring Boot 3、Redis、MySQL、ShardingSphere、Caffeine 和 React 构建的智能短链管理平台，支持短链创建、跳转、统计分析和运营管理。
+LinkPilot 是一个基于 Spring Boot 4、Redis、MySQL、ShardingSphere、Caffeine 和 React 构建的智能短链管理平台，支持短链创建、跳转、统计分析和运营管理。
 
 - **分布式短码生成：** 使用 Redis `INCRBY` 按 1 万个序号批量分配号段，以本地原子递增和 20% 阈值异步预取降低远程取号频率；通过仿射置换与定长 Base62 编码生成不可顺序猜测且无算法碰撞的 6/7 位短码。
 - **高并发跳转与缓存一致性：** 构建 Caffeine、Redis、Bloom Filter、空值缓存和数据库的分层查询链路，使用按短链隔离的本地锁与双重检查抑制缓存击穿；创建事务提交后再预热缓存，更新、回收和分组迁移同步失效缓存，避免脏读与悬空路由。
@@ -28,11 +28,11 @@ LinkPilot 是一个基于 Spring Boot 3、Redis、MySQL、ShardingSphere、Caffe
 
 | 层级 | 技术 |
 |------|------|
-| 语言 | Java 21 |
-| 框架 | Spring Boot 3.1.10 |
+| 语言 | Java 25 |
+| 框架 | Spring Boot 4.2.0 |
 | 构建 | Maven |
-| ORM | MyBatis Plus 3.5.5 |
-| 数据库 | MySQL 8.0 + ShardingSphere 5.3.2（16 表分片） |
+| ORM | MyBatis Plus 3.5.18 |
+| 数据库 | MySQL 8.0 + ShardingSphere 5.5.3（16 表分片） |
 | 缓存 | Caffeine + Redis + Redisson Bloom Filter |
 | 消息队列 | Redis Stream + Consumer Group |
 | 限流 | Guava RateLimiter + Redis Lua 滑动窗口 |
@@ -45,8 +45,8 @@ LinkPilot 是一个基于 Spring Boot 3、Redis、MySQL、ShardingSphere、Caffe
 ### 1. 环境准备
 
 ```bash
-java -version  # JDK 21
-mvn -version   # Maven 3.6+
+java -version  # JDK 25
+mvn -version   # Maven 3.6.3+
 mysql --version # MySQL 8.0
 redis-cli ping  # Redis 7.0 → PONG
 ```
@@ -78,10 +78,14 @@ mvn spring-boot:run -Dspring-boot.run.profiles=local
 # 或：java -jar target/shortlink-all-1.0-SNAPSHOT.jar --spring.profiles.active=local
 ```
 
-或 Docker：
+如果部署时使用自定义的 ShardingSphere 配置，请参考仓库中的两份分片 YAML，更新 `!SINGLE`、`autoTables` 和 `!ENCRYPT` 的 `cipher` 配置，并保留原有分片键、分片数量和 AES 密钥。自定义应用 YAML 也需设置 `spring.http.converters.preferred-json-mapper: jackson2`，以保留现有响应格式。
+
+或使用当前源码构建 Docker 镜像：
 
 ```bash
-docker-compose up -d
+mvn clean package
+docker build -t ghcr.io/haotangyuan/shortlink:latest .
+docker compose up -d
 ```
 
 ### 4. 前端开发

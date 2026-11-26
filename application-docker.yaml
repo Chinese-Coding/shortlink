@@ -6,6 +6,9 @@ spring:
     # Use external ShardingSphere YAML mounted at /app
     driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
     url: jdbc:shardingsphere:absolutepath:/app/shardingsphere-config.yaml
+  http:
+    converters:
+      preferred-json-mapper: jackson2
   mvc:
     view:
       prefix: /templates/

@@ -20,13 +20,13 @@ docker-compose up -d
 cd frontend && npm install && npm run dev  # http://localhost:5173/app
 ```
 
-Prerequisites: Java 21, Maven 3.6+, MySQL 8.0+, Redis 7.0+.
+Prerequisites: Java 25, Maven 3.6.3+, MySQL 8.0+, Redis 7.0+.
 
 Database init: `mysql -u root -p db_shortlink < link.sql`
 
 ## Architecture
 
-High-performance URL shortener. Spring Boot 3 backend + React frontend.
+High-performance URL shortener. Spring Boot 4 backend + React frontend.
 
 ### Core Flow
 
