@@ -20,7 +20,7 @@ docker-compose up -d
 cd frontend && npm install && npm run dev  # http://localhost:5173/app
 ```
 
-Prerequisites: Java 25, Maven 3.6.3+, MySQL 8.0+, Redis 7.0+.
+Prerequisites: Java 25, Maven 3.6.3+, MySQL 8.0+, Redis 8.12.0.
 
 Database init: `mysql -u root -p db_shortlink < link.sql`
 

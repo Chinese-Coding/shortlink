@@ -48,7 +48,7 @@ LinkPilot 是一个基于 Spring Boot 4、Redis、MySQL、ShardingSphere、Caffe
 java -version  # JDK 25
 mvn -version   # Maven 3.6.3+
 mysql --version # MySQL 8.0
-redis-cli ping  # Redis 7.0 → PONG
+redis-cli ping  # Redis 8.12.0 → PONG
 ```
 
 ### 2. 初始化数据库
@@ -87,6 +87,8 @@ mvn clean package
 docker build -t ghcr.io/haotangyuan/shortlink:latest .
 docker compose up -d
 ```
+
+已有 Redis 数据卷的部署，升级前先暂停应用写入并备份完整的 `redis_data` 卷。保留 AOF 文件及其清单，先用副本试启动 Redis 8.12.0，并核对短码号段计数、Stream 消费组和待确认消息。需要回退时，用 Redis 7.0 启动升级前的备份。
 
 ### 4. 前端开发
 
