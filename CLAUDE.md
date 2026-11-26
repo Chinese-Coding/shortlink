@@ -20,9 +20,9 @@ docker-compose up -d
 cd frontend && npm install && npm run dev  # http://localhost:5173/app
 ```
 
-Prerequisites: Java 25, Maven 3.6.3+, MySQL 8.0+, Redis 8.12.0.
+Prerequisites: Java 25, Maven 3.6.3+, PostgreSQL 19, Redis 8.12.0.
 
-Database init: `mysql -u root -p db_shortlink < link.sql`
+Database init: `psql -h 127.0.0.1 -U linkapp -d db_shortlink -v ON_ERROR_STOP=1 -f link-postgresql.sql`
 
 ## Architecture
 
@@ -78,7 +78,7 @@ Redis Stream + Consumer Group 异步处理统计。`StatsConsumer` 消费后通�
 ## Environment Variables
 
 See `.env.example`. Key ones:
-- `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USERNAME`, `MYSQL_PASSWORD` — MySQL
+- `POSTGRES_PASSWORD` — PostgreSQL Docker password
 - `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` — Redis
 - `SERVER_PORT` — 默认 8068
 

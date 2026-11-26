@@ -24,7 +24,7 @@ public interface LinkLocaleStatsMapper extends BaseMapper<LinkLocaleStatsDO> {
      */
     @Insert("""
             INSERT INTO t_link_locale_stats (
-                full_short_url, date, cnt, country, province, city, adcode, create_time, update_time, del_flag
+                full_short_url, stats_date, cnt, country, province, city, adcode, create_time, update_time, del_flag
             )
             VALUES (
                 #{linkLocaleStats.fullShortUrl},
@@ -36,8 +36,8 @@ public interface LinkLocaleStatsMapper extends BaseMapper<LinkLocaleStatsDO> {
                 #{linkLocaleStats.adcode},
                 NOW(), NOW(), 0
             )
-            ON DUPLICATE KEY UPDATE
-                cnt = cnt + #{linkLocaleStats.cnt}
+            ON CONFLICT (full_short_url, stats_date, adcode, province) DO UPDATE SET
+                cnt = t_link_locale_stats.cnt + EXCLUDED.cnt
             """)
     void shortLinkLocaleStats(@Param("linkLocaleStats") LinkLocaleStatsDO linkLocaleStatsDO);
 
@@ -58,7 +58,7 @@ public interface LinkLocaleStatsMapper extends BaseMapper<LinkLocaleStatsDO> {
               AND tl.gid = #{param.gid}
               AND tl.del_flag = '0'
               AND tl.enable_status = #{param.enableStatus}
-              AND tlls.date BETWEEN #{param.startDate} AND #{param.endDate}
+              AND tlls.stats_date BETWEEN #{param.startDate} AND #{param.endDate}
             GROUP BY tlls.full_short_url, tl.gid, tlls.province
             """)
     List<LinkLocaleStatsDO> listLocaleByShortLink(@Param("param") LinkStatsReqDTO linkStatsReqDTO);
@@ -81,7 +81,7 @@ public interface LinkLocaleStatsMapper extends BaseMapper<LinkLocaleStatsDO> {
                 tl.gid = #{param.gid}
                 AND tl.del_flag = '0'
                 AND tl.enable_status = '0'
-                AND tlls.date BETWEEN #{param.startDate} AND #{param.endDate}
+                AND tlls.stats_date BETWEEN #{param.startDate} AND #{param.endDate}
             GROUP BY
                 tl.gid,
                 tlls.province

@@ -23,7 +23,7 @@ public interface LinkBrowserStatsMapper extends BaseMapper<LinkBrowserStatsDO> {
      */
     @Insert("""
             INSERT INTO t_link_browser_stats (
-                full_short_url, date, cnt, browser, create_time, update_time, del_flag
+                full_short_url, stats_date, cnt, browser, create_time, update_time, del_flag
             )
             VALUES (
                 #{linkBrowserStats.fullShortUrl},
@@ -32,8 +32,8 @@ public interface LinkBrowserStatsMapper extends BaseMapper<LinkBrowserStatsDO> {
                 #{linkBrowserStats.browser},
                 NOW(), NOW(), 0
             )
-            ON DUPLICATE KEY UPDATE
-                cnt = cnt + #{linkBrowserStats.cnt}
+            ON CONFLICT (full_short_url, stats_date, browser) DO UPDATE SET
+                cnt = t_link_browser_stats.cnt + EXCLUDED.cnt
             """)
     void shortLinkBrowserStats(@Param("linkBrowserStats") LinkBrowserStatsDO linkBrowserStatsDO);
 
@@ -54,7 +54,7 @@ public interface LinkBrowserStatsMapper extends BaseMapper<LinkBrowserStatsDO> {
               AND tl.gid = #{param.gid}
               AND tl.del_flag = '0'
               AND tl.enable_status = #{param.enableStatus}
-              AND tlbs.date BETWEEN #{param.startDate} AND #{param.endDate}
+              AND tlbs.stats_date BETWEEN #{param.startDate} AND #{param.endDate}
             GROUP BY tlbs.full_short_url, tl.gid, tlbs.browser
             """)
     List<HashMap<String, Object>> listBrowserStatsByShortLink(@Param("param") LinkStatsReqDTO linkStatsReqDTO);
@@ -75,7 +75,7 @@ public interface LinkBrowserStatsMapper extends BaseMapper<LinkBrowserStatsDO> {
             WHERE tl.gid = #{param.gid}
               AND tl.del_flag = '0'
               AND tl.enable_status = '0'
-              AND tlbs.date BETWEEN #{param.startDate} AND #{param.endDate}
+              AND tlbs.stats_date BETWEEN #{param.startDate} AND #{param.endDate}
             GROUP BY tl.gid, tlbs.browser
             """)
     List<HashMap<String, Object>> listBrowserStatsByGroup(@Param("param") GroupStatsReqDTO groupStatsReqDTO);

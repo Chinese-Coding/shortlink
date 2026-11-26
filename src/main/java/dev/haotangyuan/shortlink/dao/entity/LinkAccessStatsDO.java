@@ -1,5 +1,6 @@
 package dev.haotangyuan.shortlink.dao.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,6 +34,7 @@ public class LinkAccessStatsDO {
     /**
      * 日期
      */
+    @TableField("stats_date")
     private Date date;
 
     /**
@@ -53,10 +55,12 @@ public class LinkAccessStatsDO {
     /**
      * 小时
      */
+    @TableField("stats_hour")
     private Integer hour;
 
     /**
      * 星期
      */
+    @TableField("stats_weekday")
     private Integer weekday;
 }

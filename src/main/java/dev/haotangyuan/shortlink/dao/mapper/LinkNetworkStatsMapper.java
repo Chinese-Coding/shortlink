@@ -24,7 +24,7 @@ public interface LinkNetworkStatsMapper extends BaseMapper<LinkNetworkStatsDO> {
      */
     @Insert("""
             INSERT INTO t_link_network_stats (
-                full_short_url, date, cnt, network, create_time, update_time, del_flag
+                full_short_url, stats_date, cnt, network, create_time, update_time, del_flag
             )
             VALUES (
                 #{linkNetworkStats.fullShortUrl},
@@ -33,8 +33,8 @@ public interface LinkNetworkStatsMapper extends BaseMapper<LinkNetworkStatsDO> {
                 #{linkNetworkStats.network},
                 NOW(), NOW(), 0
             )
-            ON DUPLICATE KEY UPDATE
-                cnt = cnt + #{linkNetworkStats.cnt}
+            ON CONFLICT (full_short_url, stats_date, network) DO UPDATE SET
+                cnt = t_link_network_stats.cnt + EXCLUDED.cnt
             """)
     void shortLinkNetworkStats(@Param("linkNetworkStats") LinkNetworkStatsDO linkNetworkStatsDO);
 
@@ -55,7 +55,7 @@ public interface LinkNetworkStatsMapper extends BaseMapper<LinkNetworkStatsDO> {
               AND tl.gid = #{param.gid}
               AND tl.del_flag = '0'
               AND tl.enable_status = #{param.enableStatus}
-              AND tlns.date BETWEEN #{param.startDate} AND #{param.endDate}
+              AND tlns.stats_date BETWEEN #{param.startDate} AND #{param.endDate}
             GROUP BY tlns.full_short_url, tl.gid, tlns.network
             """)
     List<LinkNetworkStatsDO> listNetworkStatsByShortLink(@Param("param") LinkStatsReqDTO linkStatsReqDTO);
@@ -76,7 +76,7 @@ public interface LinkNetworkStatsMapper extends BaseMapper<LinkNetworkStatsDO> {
             WHERE tl.gid = #{param.gid}
               AND tl.del_flag = '0'
               AND tl.enable_status = '0'
-              AND tlns.date BETWEEN #{param.startDate} AND #{param.endDate}
+              AND tlns.stats_date BETWEEN #{param.startDate} AND #{param.endDate}
             GROUP BY tl.gid, tlns.network
             """)
     List<LinkNetworkStatsDO> listNetworkStatsByGroup(@Param("param") GroupStatsReqDTO groupStatsReqDTO);

@@ -79,7 +79,7 @@ public class LinkDO extends BaseDO {
     /**
      * 描述
      */
-    @TableField("`describe`")
+    @TableField("\"describe\"")
     private String describe;
 
     /**

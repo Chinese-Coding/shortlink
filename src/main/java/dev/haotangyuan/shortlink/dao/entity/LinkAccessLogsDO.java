@@ -1,5 +1,6 @@
 package dev.haotangyuan.shortlink.dao.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import dev.haotangyuan.shortlink.common.database.BaseDO;
 import lombok.AllArgsConstructor;
@@ -34,6 +35,7 @@ public class LinkAccessLogsDO extends BaseDO {
     /**
      * 用户信息
      */
+    @TableField("\"user\"")
     private String user;
 
     /**

@@ -24,7 +24,7 @@ public interface LinkDeviceStatsMapper extends BaseMapper<LinkDeviceStatsDO> {
      */
     @Insert("""
             INSERT INTO t_link_device_stats (
-                full_short_url, date, cnt, device, create_time, update_time, del_flag
+                full_short_url, stats_date, cnt, device, create_time, update_time, del_flag
             )
             VALUES (
                 #{linkDeviceStats.fullShortUrl},
@@ -33,8 +33,8 @@ public interface LinkDeviceStatsMapper extends BaseMapper<LinkDeviceStatsDO> {
                 #{linkDeviceStats.device},
                 NOW(), NOW(), 0
             )
-            ON DUPLICATE KEY UPDATE
-                cnt = cnt + #{linkDeviceStats.cnt}
+            ON CONFLICT (full_short_url, stats_date, device) DO UPDATE SET
+                cnt = t_link_device_stats.cnt + EXCLUDED.cnt
             """)
     void shortLinkDeviceStats(@Param("linkDeviceStats") LinkDeviceStatsDO linkDeviceStatsDO);
 
@@ -55,7 +55,7 @@ public interface LinkDeviceStatsMapper extends BaseMapper<LinkDeviceStatsDO> {
               AND tl.gid = #{param.gid}
               AND tl.del_flag = '0'
               AND tl.enable_status = #{param.enableStatus}
-              AND tlds.date BETWEEN #{param.startDate} AND #{param.endDate}
+              AND tlds.stats_date BETWEEN #{param.startDate} AND #{param.endDate}
             GROUP BY tlds.full_short_url, tl.gid, tlds.device
             """)
     List<LinkDeviceStatsDO> listDeviceStatsByShortLink(@Param("param") LinkStatsReqDTO linkStatsReqDTO);
@@ -76,7 +76,7 @@ public interface LinkDeviceStatsMapper extends BaseMapper<LinkDeviceStatsDO> {
             WHERE tl.gid = #{param.gid}
               AND tl.del_flag = '0'
               AND tl.enable_status = '0'
-              AND tlds.date BETWEEN #{param.startDate} AND #{param.endDate}
+              AND tlds.stats_date BETWEEN #{param.startDate} AND #{param.endDate}
             GROUP BY tl.gid, tlds.device
             """)
     List<LinkDeviceStatsDO> listDeviceStatsByGroup(@Param("param") GroupStatsReqDTO groupStatsReqDTO);

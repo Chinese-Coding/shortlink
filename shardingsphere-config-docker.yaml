@@ -2,10 +2,10 @@
 dataSources:
   ds_0:
     dataSourceClassName: com.zaxxer.hikari.HikariDataSource
-    driverClassName: com.mysql.cj.jdbc.Driver
-    jdbcUrl: jdbc:mysql://shortlink-mysql:3306/db_shortlink?useUnicode=true&characterEncoding=UTF-8&rewriteBatchedStatements=true&allowMultiQueries=true&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    driverClassName: org.postgresql.Driver
+    jdbcUrl: jdbc:postgresql://shortlink-postgresql:5432/db_shortlink?stringtype=unspecified
     username: linkapp
-    # 注意：ShardingSphere 不解析环境变量占位符，请填写与 .env 中 MYSQL_PASSWORD 一致的明文
+    # 注意：ShardingSphere 不解析环境变量占位符，请填写与 .env 中 POSTGRES_PASSWORD 一致的明文
     password: YourStrongPassword
 
 rules:

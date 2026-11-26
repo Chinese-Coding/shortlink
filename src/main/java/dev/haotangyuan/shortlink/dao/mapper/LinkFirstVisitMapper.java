@@ -11,6 +11,9 @@ import org.apache.ibatis.annotations.Insert;
  */
 public interface LinkFirstVisitMapper extends BaseMapper<LinkFirstVisitDO> {
 
-    @Insert("INSERT IGNORE INTO t_link_first_visit (full_short_url, `user`) VALUES (#{fullShortUrl}, #{user})")
+    @Insert("""
+            INSERT INTO t_link_first_visit (full_short_url, "user") VALUES (#{fullShortUrl}, #{user})
+            ON CONFLICT (full_short_url, "user") DO NOTHING
+            """)
     int insertIgnore(LinkFirstVisitDO entity);
 }

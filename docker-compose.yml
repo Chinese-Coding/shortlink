@@ -1,33 +1,23 @@
 services:
-  # MySQL 数据库服务
-  mysql:
-    image: mysql:8.0
-    container_name: shortlink-mysql
+  postgresql:
+    image: postgres:19.0-alpine
+    container_name: shortlink-postgresql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-YourStrongPassword}
-      MYSQL_DATABASE: db_shortlink
-      MYSQL_USER: linkapp
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-YourStrongPassword}
+      POSTGRES_DB: db_shortlink
+      POSTGRES_USER: linkapp
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-YourStrongPassword}
       TZ: Asia/Shanghai
     volumes:
-      - mysql_data:/var/lib/mysql
-      - ./link.sql:/docker-entrypoint-initdb.d/01-link.sql:ro  # 直接挂载根目录的 SQL 文件
+      - postgres_data:/var/lib/postgresql
+      - ./link-postgresql.sql:/docker-entrypoint-initdb.d/01-link.sql:ro
     ports:
-      - "3306:3306"
-    command:
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
-      - --sql-mode=STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO
-      - --max-connections=1000
-      - --innodb-buffer-pool-size=256M
-      - --default-time-zone=+08:00
+      - "5432:5432"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-YourStrongPassword}"]
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "linkapp", "-d", "db_shortlink"]
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 90s
     networks:
       - shortlink-network
 
@@ -69,7 +59,7 @@ services:
       - ./application-docker.yaml:/app/application.yaml:ro  # 应用配置
       - ./shardingsphere-config-docker.yaml:/app/shardingsphere-config.yaml:ro  # 分库分表配置
     depends_on:
-      mysql:
+      postgresql:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -84,7 +74,7 @@ services:
 
 # 数据卷
 volumes:
-  mysql_data:
+  postgres_data:
     driver: local
   redis_data:
     driver: local

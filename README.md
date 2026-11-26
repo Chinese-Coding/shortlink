@@ -14,7 +14,7 @@
 
 ## 简历描述
 
-LinkPilot 是一个基于 Spring Boot 4、Redis、MySQL、ShardingSphere、Caffeine 和 React 构建的智能短链管理平台，支持短链创建、跳转、统计分析和运营管理。
+LinkPilot 是一个基于 Spring Boot 4、Redis、PostgreSQL、ShardingSphere、Caffeine 和 React 构建的智能短链管理平台，支持短链创建、跳转、统计分析和运营管理。
 
 - **分布式短码生成：** 使用 Redis `INCRBY` 按 1 万个序号批量分配号段，以本地原子递增和 20% 阈值异步预取降低远程取号频率；通过仿射置换与定长 Base62 编码生成不可顺序猜测且无算法碰撞的 6/7 位短码。
 - **高并发跳转与缓存一致性：** 构建 Caffeine、Redis、Bloom Filter、空值缓存和数据库的分层查询链路，使用按短链隔离的本地锁与双重检查抑制缓存击穿；创建事务提交后再预热缓存，更新、回收和分组迁移同步失效缓存，避免脏读与悬空路由。
@@ -32,7 +32,7 @@ LinkPilot 是一个基于 Spring Boot 4、Redis、MySQL、ShardingSphere、Caffe
 | 框架 | Spring Boot 4.2.0 |
 | 构建 | Maven |
 | ORM | MyBatis Plus 3.5.18 |
-| 数据库 | MySQL 8.0 + ShardingSphere 5.5.3（16 表分片） |
+| 数据库 | PostgreSQL 19 + ShardingSphere 5.5.3（16 表分片） |
 | 缓存 | Caffeine + Redis + Redisson Bloom Filter |
 | 消息队列 | Redis Stream + Consumer Group |
 | 限流 | Guava RateLimiter + Redis Lua 滑动窗口 |
@@ -47,22 +47,24 @@ LinkPilot 是一个基于 Spring Boot 4、Redis、MySQL、ShardingSphere、Caffe
 ```bash
 java -version  # JDK 25
 mvn -version   # Maven 3.6.3+
-mysql --version # MySQL 8.0
+psql --version # PostgreSQL 19
 redis-cli ping  # Redis 8.12.0 → PONG
 ```
 
-### 2. 初始化数据库
+### 2. 初始化 PostgreSQL
+
+以数据库管理员身份创建应用角色和数据库，然后用应用角色加载 schema：
 
 ```sql
-CREATE DATABASE IF NOT EXISTS db_shortlink DEFAULT CHARACTER SET utf8mb4;
-CREATE USER IF NOT EXISTS 'linkapp'@'127.0.0.1' IDENTIFIED BY 'YourStrongPassword';
-GRANT ALL PRIVILEGES ON db_shortlink.* TO 'linkapp'@'127.0.0.1';
-FLUSH PRIVILEGES;
+CREATE ROLE linkapp LOGIN PASSWORD 'YourStrongPassword';
+CREATE DATABASE db_shortlink OWNER linkapp;
 ```
 
 ```bash
-mysql -u root -p db_shortlink < link.sql
+psql -h 127.0.0.1 -U linkapp -d db_shortlink -v ON_ERROR_STOP=1 -f link-postgresql.sql
 ```
+
+将 ShardingSphere 配置中的连接地址、密码及 AES 密钥设为部署值。Docker Compose 会在空 PostgreSQL 数据卷上初始化 schema。`link.sql` 保留了原 MySQL 表定义。已有实例需要单独导出、导入并校验数据，再切换数据库连接。
 
 ### 3. 构建并启动
 
@@ -156,7 +158,7 @@ THREADS=100 TARGET_RPS=400 DURATION_SECONDS=40 ./scripts/run-benchmark.sh create
 | --- | --- |
 | 代码版本 | Git commit SHA；工作区有改动时标记 `dirty` |
 | 环境 | CPU、内存、操作系统、JDK/JVM 参数、JMeter 版本 |
-| 拓扑 | 压测机与服务是否同机，应用/MySQL/Redis 实例数 |
+| 拓扑 | 压测机与服务是否同机，应用/数据库/Redis 实例数 |
 | 场景 | 接口、并发线程、爬升时间、稳定运行时间、数据预热方式 |
 | 结果 | 吞吐量、平均延迟、P90/P95/P99、错误率、CPU/内存峰值 |
 

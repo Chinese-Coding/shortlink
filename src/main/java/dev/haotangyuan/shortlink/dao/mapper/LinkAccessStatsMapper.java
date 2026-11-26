@@ -26,7 +26,7 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
      */
     @Insert("""
             INSERT INTO t_link_access_stats (
-                full_short_url, date, pv, uv, uip, hour, weekday, create_time, update_time, del_flag
+                full_short_url, stats_date, pv, uv, uip, stats_hour, stats_weekday, create_time, update_time, del_flag
             )
             VALUES (
                 #{linkAccessStats.fullShortUrl},
@@ -38,10 +38,10 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
                 #{linkAccessStats.weekday},
                 NOW(), NOW(), 0
             )
-            ON DUPLICATE KEY UPDATE
-                pv = pv + #{linkAccessStats.pv},
-                uv = uv + #{linkAccessStats.uv},
-                uip = uip + #{linkAccessStats.uip}
+            ON CONFLICT (full_short_url, stats_date, stats_hour) DO UPDATE SET
+                pv = t_link_access_stats.pv + EXCLUDED.pv,
+                uv = t_link_access_stats.uv + EXCLUDED.uv,
+                uip = t_link_access_stats.uip + EXCLUDED.uip
             """)
     void shortLinkAccessStats(@Param("linkAccessStats") LinkAccessStatsDO linkAccessStatsDO);
 
@@ -53,7 +53,7 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
      */
     @Select("""
             SELECT
-                tlas.date,
+                tlas.stats_date AS "date",
                 SUM(tlas.pv)  AS pv,
                 SUM(tlas.uv)  AS uv,
                 SUM(tlas.uip) AS uip
@@ -64,8 +64,8 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
               AND tl.gid = #{param.gid}
               AND tl.del_flag = '0'
               AND tl.enable_status = #{param.enableStatus}
-              AND tlas.date BETWEEN #{param.startDate} AND #{param.endDate}
-            GROUP BY tlas.full_short_url, tl.gid, tlas.date
+              AND tlas.stats_date BETWEEN #{param.startDate} AND #{param.endDate}
+            GROUP BY tlas.full_short_url, tl.gid, tlas.stats_date
             """)
     List<LinkAccessStatsDO> listStatsByShortLink(@Param("param") LinkStatsReqDTO linkStatsReqDTO);
 
@@ -77,7 +77,7 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
      */
     @Select("""
             SELECT
-                tlas.hour,
+                tlas.stats_hour AS "hour",
                 SUM(tlas.pv) AS pv
             FROM t_link tl
             INNER JOIN t_link_access_stats tlas
@@ -86,8 +86,8 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
               AND tl.gid = #{param.gid}
               AND tl.del_flag = '0'
               AND tl.enable_status = #{param.enableStatus}
-              AND tlas.date BETWEEN #{param.startDate} AND #{param.endDate}
-            GROUP BY tlas.full_short_url, tl.gid, tlas.hour
+              AND tlas.stats_date BETWEEN #{param.startDate} AND #{param.endDate}
+            GROUP BY tlas.full_short_url, tl.gid, tlas.stats_hour
             """)
     List<LinkAccessStatsDO> listHourStatsByShortLink(@Param("param") LinkStatsReqDTO linkStatsReqDTO);
 
@@ -99,7 +99,7 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
      */
     @Select("""
             SELECT
-                tlas.weekday,
+                tlas.stats_weekday AS "weekday",
                 SUM(tlas.pv) AS pv
             FROM t_link tl
             INNER JOIN t_link_access_stats tlas
@@ -108,8 +108,8 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
               AND tl.gid = #{param.gid}
               AND tl.del_flag = '0'
               AND tl.enable_status = #{param.enableStatus}
-              AND tlas.date BETWEEN #{param.startDate} AND #{param.endDate}
-            GROUP BY tlas.full_short_url, tl.gid, tlas.weekday
+              AND tlas.stats_date BETWEEN #{param.startDate} AND #{param.endDate}
+            GROUP BY tlas.full_short_url, tl.gid, tlas.stats_weekday
             """)
     List<LinkAccessStatsDO> listWeekdayStatsByShortLink(@Param("param") LinkStatsReqDTO linkStatsReqDTO);
 
@@ -121,7 +121,7 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
      */
     @Select("""
             SELECT
-                tlas.date,
+                tlas.stats_date AS "date",
                 SUM(tlas.pv)  AS pv,
                 SUM(tlas.uv)  AS uv,
                 SUM(tlas.uip) AS uip
@@ -131,8 +131,8 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
             WHERE tl.gid = #{param.gid}
               AND tl.del_flag = '0'
               AND tl.enable_status = '0'
-              AND tlas.date BETWEEN #{param.startDate} AND #{param.endDate}
-            GROUP BY tl.gid, tlas.date
+              AND tlas.stats_date BETWEEN #{param.startDate} AND #{param.endDate}
+            GROUP BY tl.gid, tlas.stats_date
             """)
     List<LinkAccessStatsDO> listStatsByGroup(@Param("param") GroupStatsReqDTO groupStatsReqDTO);
 
@@ -144,7 +144,7 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
      */
     @Select("""
             SELECT
-                tls.hour,
+                tls.stats_hour AS "hour",
                 SUM(tls.pv) AS pv
             FROM
                 t_link tl
@@ -154,10 +154,10 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
                 tl.gid = #{param.gid}
                 AND tl.del_flag = '0'
                 AND tl.enable_status = '0'
-                AND tls.date BETWEEN #{param.startDate} AND #{param.endDate}
+                AND tls.stats_date BETWEEN #{param.startDate} AND #{param.endDate}
             GROUP BY
                 tl.gid,
-                tls.hour
+                tls.stats_hour
             """)
     List<LinkAccessStatsDO> listHourStatsByGroup(@Param("param") GroupStatsReqDTO groupStatsReqDTO);
 
@@ -169,7 +169,7 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
      */
     @Select("""
             SELECT
-                tlas.weekday,
+                tlas.stats_weekday AS "weekday",
                 SUM(tlas.pv) AS pv
             FROM t_link tl
             INNER JOIN t_link_access_stats tlas
@@ -177,8 +177,8 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
             WHERE tl.gid = #{param.gid}
               AND tl.del_flag = '0'
               AND tl.enable_status = '0'
-              AND tlas.date BETWEEN #{param.startDate} AND #{param.endDate}
-            GROUP BY tl.gid, tlas.weekday
+              AND tlas.stats_date BETWEEN #{param.startDate} AND #{param.endDate}
+            GROUP BY tl.gid, tlas.stats_weekday
             """)
     List<LinkAccessStatsDO> listWeekdayStatsByGroup(@Param("param") GroupStatsReqDTO groupStatsReqDTO);
 
@@ -196,7 +196,7 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
                 #{fullShortUrl}
               </foreach>
               AND tlas.del_flag = '0'
-              AND tlas.date = #{today}
+              AND tlas.stats_date = #{today}
             GROUP BY tlas.full_short_url
             </script>
             """)
@@ -210,7 +210,7 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
             <script>
             SELECT
                 tl.gid AS gid,
-                COALESCE(SUM(tlas.pv), 0) AS todayPv
+                COALESCE(SUM(tlas.pv), 0) AS "todayPv"
             FROM t_link tl
             INNER JOIN t_link_access_stats tlas
                 ON tl.full_short_url = tlas.full_short_url
@@ -221,7 +221,7 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
               AND tl.del_flag = '0'
               AND tl.enable_status = '0'
               AND tlas.del_flag = '0'
-              AND tlas.date = #{today}
+              AND tlas.stats_date = #{today}
             GROUP BY tl.gid
             </script>
             """)

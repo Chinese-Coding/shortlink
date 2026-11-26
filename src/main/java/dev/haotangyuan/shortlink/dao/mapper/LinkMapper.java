@@ -51,10 +51,11 @@ public interface LinkMapper extends BaseMapper<LinkDO> {
               AND t.enable_status = 0
               AND t.del_flag = 0
             <if test="p.keyword != null and p.keyword != ''">
+                <bind name="keywordPattern" value="'%' + p.keyword + '%'" />
                 AND (
-                    t.full_short_url LIKE CONCAT('%', #{p.keyword}, '%')
-                    OR t.origin_url LIKE CONCAT('%', #{p.keyword}, '%')
-                    OR t.`describe` LIKE CONCAT('%', #{p.keyword}, '%')
+                    t.full_short_url ILIKE #{keywordPattern}
+                    OR t.origin_url ILIKE #{keywordPattern}
+                    OR t."describe" ILIKE #{keywordPattern}
                 )
             </if>
             <choose>
@@ -74,8 +75,8 @@ public interface LinkMapper extends BaseMapper<LinkDO> {
             <script>
             SELECT
                 gid AS gid,
-                COUNT(*) AS linkCount,
-                COALESCE(SUM(total_pv), 0) AS totalPv
+                COUNT(*) AS "linkCount",
+                COALESCE(SUM(total_pv), 0) AS "totalPv"
             FROM t_link
             WHERE gid IN
             <foreach item="gid" collection="gidList" open="(" separator="," close=")">

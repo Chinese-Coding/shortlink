@@ -25,7 +25,7 @@ public interface LinkOsStatsMapper extends BaseMapper<LinkOsStatsDO> {
      */
     @Insert("""
             INSERT INTO t_link_os_stats (
-                full_short_url, date, cnt, os, create_time, update_time, del_flag
+                full_short_url, stats_date, cnt, os, create_time, update_time, del_flag
             )
             VALUES (
                 #{linkOsStats.fullShortUrl},
@@ -34,8 +34,8 @@ public interface LinkOsStatsMapper extends BaseMapper<LinkOsStatsDO> {
                 #{linkOsStats.os},
                 NOW(), NOW(), 0
             )
-            ON DUPLICATE KEY UPDATE
-                cnt = cnt + #{linkOsStats.cnt}
+            ON CONFLICT (full_short_url, stats_date, os) DO UPDATE SET
+                cnt = t_link_os_stats.cnt + EXCLUDED.cnt
             """)
     void shortLinkOsStats(@Param("linkOsStats") LinkOsStatsDO linkOsStatsDO);
 
@@ -56,7 +56,7 @@ public interface LinkOsStatsMapper extends BaseMapper<LinkOsStatsDO> {
               AND tl.gid = #{param.gid}
               AND tl.del_flag = '0'
               AND tl.enable_status = #{param.enableStatus}
-              AND tlos.date BETWEEN #{param.startDate} AND #{param.endDate}
+              AND tlos.stats_date BETWEEN #{param.startDate} AND #{param.endDate}
             GROUP BY tlos.full_short_url, tl.gid, tlos.os
             """)
     List<HashMap<String, Object>> listOsStatsByShortLink(@Param("param") LinkStatsReqDTO linkStatsReqDTO);
@@ -77,7 +77,7 @@ public interface LinkOsStatsMapper extends BaseMapper<LinkOsStatsDO> {
             WHERE tl.gid = #{param.gid}
               AND tl.del_flag = '0'
               AND tl.enable_status = '0'
-              AND tlos.date BETWEEN #{param.startDate} AND #{param.endDate}
+              AND tlos.stats_date BETWEEN #{param.startDate} AND #{param.endDate}
             GROUP BY tl.gid, tlos.os
             """)
     List<HashMap<String, Object>> listOsStatsByGroup(@Param("param") GroupStatsReqDTO groupStatsReqDTO);

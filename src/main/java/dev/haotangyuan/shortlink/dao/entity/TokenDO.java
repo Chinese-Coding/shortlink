@@ -58,6 +58,6 @@ public class TokenDO extends BaseDO {
     /**
      * 描述
      */
-    @TableField("`describe`")
+    @TableField("\"describe\"")
     private String describe;
 }
