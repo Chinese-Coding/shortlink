@@ -62,6 +62,7 @@ services:
       - JAVA_TOOL_OPTIONS=-Duser.timezone=Asia/Shanghai
       - JAVA_OPTS=${JAVA_OPTS:--Xmx1024m -Xms512m -XX:+UseG1GC -XX:MaxGCPauseMillis=200}
       - REDIS_PASSWORD=${REDIS_PASSWORD:-YourStrongPassword}
+      - SPRING_THREADS_VIRTUAL_ENABLED=${SPRING_THREADS_VIRTUAL_ENABLED:-false}
       - SHORTLINK_DOMAIN=${SHORTLINK_DOMAIN:-localhost:8068}
     volumes:
       # 自定义配置文件挂载 - 需要确保这些文件存在

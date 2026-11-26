@@ -103,6 +103,10 @@ cd frontend && npm install && npm run dev
 - **Swagger UI**：http://127.0.0.1:8068/swagger-ui/index.html
 - **MCP 端点**：http://127.0.0.1:8068/api/mcp
 
+### 可选启用虚拟线程
+
+本地运行时，在启动命令前设置 `SPRING_THREADS_VIRTUAL_ENABLED=true`。Docker Compose 部署可在 `.env` 中设置同名变量，再重建应用容器。默认关闭。启用后，Spring Boot 会为 Tomcat 请求处理和自动配置的调度器使用虚拟线程。Redis Stream 的消费者并发度仍由应用的消费者线程池配置决定。
+
 ## 核心设计
 
 ### 短码生成：号段 + 仿射置换

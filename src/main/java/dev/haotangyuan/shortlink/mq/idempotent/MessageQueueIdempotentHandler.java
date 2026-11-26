@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 import static dev.haotangyuan.shortlink.common.constant.RedisKeyConstant.IDEMPOTENT_KEY_PREFIX;
 
@@ -29,7 +29,7 @@ public class MessageQueueIdempotentHandler {
     public boolean isProcessed(String messageId) {
         String key = String.format(IDEMPOTENT_KEY_PREFIX, messageId);
         // setIfAbsent 返回 false 表示 key 已存在（已被处理过）
-        return Boolean.FALSE.equals(stringRedisTemplate.opsForValue().setIfAbsent(key, "0", 2L, TimeUnit.MINUTES));
+        return Boolean.FALSE.equals(stringRedisTemplate.opsForValue().setIfAbsent(key, "0", Duration.ofMinutes(2)));
     }
 
     /**
@@ -51,7 +51,7 @@ public class MessageQueueIdempotentHandler {
      */
     public void setAccomplish(String messageId) {
         String key = String.format(IDEMPOTENT_KEY_PREFIX, messageId);
-        stringRedisTemplate.opsForValue().set(key, "1", 4L, TimeUnit.MINUTES);
+        stringRedisTemplate.opsForValue().set(key, "1", Duration.ofMinutes(4));
     }
 
     /**

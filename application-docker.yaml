@@ -2,6 +2,8 @@ server:
   port: 8068
 
 spring:
+  main:
+    keep-alive: ${spring.threads.virtual.enabled:false}
   datasource:
     # Use external ShardingSphere YAML mounted at /app
     driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
