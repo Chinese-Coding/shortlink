@@ -64,7 +64,28 @@ CREATE DATABASE db_shortlink OWNER linkapp;
 psql -h 127.0.0.1 -U linkapp -d db_shortlink -v ON_ERROR_STOP=1 -f link-postgresql.sql
 ```
 
-将 ShardingSphere 配置中的连接地址、密码及 AES 密钥设为部署值。Docker Compose 会在空 PostgreSQL 数据卷上初始化 schema。`link.sql` 保留了原 MySQL 表定义。已有实例需要单独导出、导入并校验数据，再切换数据库连接。
+将 ShardingSphere 配置中的连接地址、密码及 AES 密钥设为部署值。Docker Compose 会在空 PostgreSQL 数据卷上初始化 schema。`link.sql` 保留了原 MySQL 表定义。已有实例按下方步骤导入数据并校验后再切换连接。
+
+#### 导入已有 MySQL 数据
+
+先在备份副本上演练。实际切换时暂停旧应用和统计消费者，备份 MySQL 和 Redis，并让新应用保持停止。用 `link-postgresql.sql` 初始化空的 PostgreSQL 目标库。请沿用旧应用的 AES 密钥、短链域名和 Redis 数据。
+
+```bash
+python3 -m venv /tmp/shortlink-migration-venv
+/tmp/shortlink-migration-venv/bin/pip install 'PyMySQL[rsa]==1.2.4' 'psycopg[binary]==3.3.9'
+
+export MYSQL_HOST=127.0.0.1 MYSQL_PORT=3306 MYSQL_USER=linkapp MYSQL_DATABASE=db_shortlink
+export PGHOST=127.0.0.1 PGPORT=5432 PGUSER=linkapp PGDATABASE=db_shortlink
+read -rsp 'MySQL password: ' MYSQL_PASSWORD; echo
+read -rsp 'PostgreSQL password: ' PGPASSWORD; echo
+export MYSQL_PASSWORD PGPASSWORD
+
+/tmp/shortlink-migration-venv/bin/python scripts/migrate-mysql-to-postgresql.py
+/tmp/shortlink-migration-venv/bin/python scripts/migrate-mysql-to-postgresql.py --verify-only
+unset MYSQL_PASSWORD PGPASSWORD
+```
+
+工具使用 MySQL 的只读一致性快照，按物理表复制记录和 ID，自动转换统计日期列和首访布尔值，并校准 PostgreSQL identity 序列。它在提交前逐表核对行数和内容摘要，任何错误都会回滚目标写入。目标已有记录时会拒绝导入。`--verify-only` 可以在启动新应用前独立重复核对。切换后请抽查旧短链、历史统计和账户数据。
 
 ### 3. 构建并启动
 
