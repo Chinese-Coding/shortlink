@@ -1,38 +1,24 @@
-package dev.haotangyuan.shortlink.common.convention.exception;
+package dev.haotangyuan.shortlink.common.convention.exception
 
-import dev.haotangyuan.shortlink.common.convention.errorcode.BaseErrorCode;
-import dev.haotangyuan.shortlink.common.convention.errorcode.IErrorCode;
-
-import java.util.Optional;
+import dev.haotangyuan.shortlink.common.convention.errorcode.BaseErrorCode
+import dev.haotangyuan.shortlink.common.convention.errorcode.IErrorCode
 
 /**
  * 服务端异常
  *
  * @author: haotangyuan
  */
-public class ServiceException extends AbstractException {
+open class ServiceException(
+    message: String?,
+    throwable: Throwable?,
+    errorCode: IErrorCode,
+) : AbstractException(message ?: errorCode.message(), throwable, errorCode) {
 
-    public ServiceException(String message) {
-        this(message, null, BaseErrorCode.SERVICE_ERROR);
-    }
+    constructor(message: String?) : this(message, null, BaseErrorCode.SERVICE_ERROR)
 
-    public ServiceException(IErrorCode errorCode) {
-        this(null, errorCode);
-    }
+    constructor(errorCode: IErrorCode) : this(null, errorCode)
 
-    public ServiceException(String message, IErrorCode errorCode) {
-        this(message, null, errorCode);
-    }
+    constructor(message: String?, errorCode: IErrorCode) : this(message, null, errorCode)
 
-    public ServiceException(String message, Throwable throwable, IErrorCode errorCode) {
-        super(Optional.ofNullable(message).orElse(errorCode.message()), throwable, errorCode);
-    }
-
-    @Override
-    public String toString() {
-        return "ServiceException{" +
-                "code='" + errorCode + "'," +
-                "message='" + errorMessage + "'" +
-                '}';
-    }
+    override fun toString(): String = "ServiceException{code='$errorCode',message='$errorMessage'}"
 }

@@ -1,10 +1,7 @@
-package dev.haotangyuan.shortlink.common.convention.exception;
+package dev.haotangyuan.shortlink.common.convention.exception
 
-import dev.haotangyuan.shortlink.common.convention.errorcode.IErrorCode;
-import lombok.Getter;
-import org.springframework.util.StringUtils;
-
-import java.util.Optional;
+import dev.haotangyuan.shortlink.common.convention.errorcode.IErrorCode
+import org.springframework.util.StringUtils
 
 /**
  * 抽象项目中三类异常体系，客户端异常、服务端异常以及远程服务调用异常
@@ -14,16 +11,20 @@ import java.util.Optional;
  * @see ServiceException
  * @see RemoteException
  */
-@Getter
-public abstract class AbstractException extends RuntimeException {
+abstract class AbstractException(
+    message: String?,
+    throwable: Throwable?,
+    errorCode: IErrorCode,
+) : RuntimeException(message, throwable) {
 
-    public final String errorCode;
+    // Java 版同时有 public 字段和 Lombok 生成的 getter，两者都保留。
+    @JvmField
+    val errorCode: String = errorCode.code()
 
-    public final String errorMessage;
+    @JvmField
+    val errorMessage: String = message?.takeIf { StringUtils.hasLength(it) } ?: errorCode.message()
 
-    public AbstractException(String message, Throwable throwable, IErrorCode errorCode) {
-        super(message, throwable);
-        this.errorCode = errorCode.code();
-        this.errorMessage = Optional.ofNullable(StringUtils.hasLength(message) ? message : null).orElse(errorCode.message());
-    }
+    open fun getErrorCode(): String = errorCode
+
+    open fun getErrorMessage(): String = errorMessage
 }

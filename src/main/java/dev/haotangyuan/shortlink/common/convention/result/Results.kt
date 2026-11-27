@@ -1,64 +1,56 @@
-package dev.haotangyuan.shortlink.common.convention.result;
+package dev.haotangyuan.shortlink.common.convention.result
 
-import dev.haotangyuan.shortlink.common.convention.errorcode.BaseErrorCode;
-import dev.haotangyuan.shortlink.common.convention.exception.AbstractException;
-
-import java.util.Optional;
+import dev.haotangyuan.shortlink.common.convention.errorcode.BaseErrorCode
+import dev.haotangyuan.shortlink.common.convention.exception.AbstractException
 
 /**
  * 全局返回对象构造器
  *
  * @author: haotangyuan
  */
-public final class Results {
+object Results {
 
     /**
      * 构造成功响应
      */
-    public static Result<Void> success() {
-        return new Result<Void>()
-                .setCode(Result.SUCCESS_CODE);
-    }
+    @JvmStatic
+    fun success(): Result<Void> =
+        Result<Void>()
+            .setCode(Result.SUCCESS_CODE)
 
     /**
      * 构造带返回数据的成功响应
      */
-    public static <T> Result<T> success(T data) {
-        return new Result<T>()
-                .setCode(Result.SUCCESS_CODE)
-                .setData(data);
-    }
+    @JvmStatic
+    fun <T> success(data: T): Result<T> =
+        Result<T>()
+            .setCode(Result.SUCCESS_CODE)
+            .setData(data)
 
     /**
      * 构建服务端失败响应
      */
-    public static Result<Void> failure() {
-        return new Result<Void>()
-                .setCode(BaseErrorCode.SERVICE_ERROR.code())
-                .setMessage(BaseErrorCode.SERVICE_ERROR.message());
-    }
+    @JvmStatic
+    fun failure(): Result<Void> =
+        Result<Void>()
+            .setCode(BaseErrorCode.SERVICE_ERROR.code())
+            .setMessage(BaseErrorCode.SERVICE_ERROR.message())
 
     /**
-     * 通过 {@link AbstractException} 构建失败响应
+     * 通过 [AbstractException] 构建失败响应
      */
-    public static Result<Void> failure(AbstractException abstractException) {
-        String errorCode = Optional.ofNullable(abstractException.getErrorCode())
-                .orElse(BaseErrorCode.SERVICE_ERROR.code());
-        String errorMessage = Optional.ofNullable(abstractException.getErrorMessage())
-                .orElse(BaseErrorCode.SERVICE_ERROR.message());
-        return new Result<Void>()
-                .setCode(errorCode)
-                .setMessage(errorMessage);
-    }
+    @JvmStatic
+    fun failure(abstractException: AbstractException): Result<Void> =
+        Result<Void>()
+            .setCode(abstractException.errorCode)
+            .setMessage(abstractException.errorMessage)
 
     /**
      * 通过 errorCode、errorMessage 构建失败响应
      */
-    public static Result<Void> failure(String errorCode, String errorMessage) {
-        return new Result<Void>()
-                .setCode(errorCode)
-                .setMessage(errorMessage);
-    }
-
-
+    @JvmStatic
+    fun failure(errorCode: String?, errorMessage: String?): Result<Void> =
+        Result<Void>()
+            .setCode(errorCode)
+            .setMessage(errorMessage)
 }
