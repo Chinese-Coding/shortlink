@@ -10,7 +10,7 @@ services:
       TZ: Asia/Shanghai
     volumes:
       - postgres_data:/var/lib/postgresql
-      - ./link-postgresql.sql:/docker-entrypoint-initdb.d/01-link.sql:ro
+      - ../link-postgresql.sql:/docker-entrypoint-initdb.d/01-link.sql:ro
     ports:
       - "5432:5432"
     healthcheck:

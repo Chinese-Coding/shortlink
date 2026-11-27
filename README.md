@@ -108,9 +108,11 @@ mvn spring-boot:run -Dspring-boot.run.profiles=local
 
 ```bash
 mvn clean package
-docker build -t ghcr.io/haotangyuan/shortlink:latest .
-docker compose up -d
+docker build -f docker/Dockerfile -t ghcr.io/haotangyuan/shortlink:latest .
+docker compose --env-file .env -f docker/docker-compose.yml up -d
 ```
+
+Docker 相关文件（`Dockerfile`、`docker-compose.yml`、`docker-entrypoint.sh`、两份 Docker 专用 YAML）都在 `docker/` 下，构建上下文仍是仓库根目录。Compose 默认只读取 `docker/` 下的 `.env`，所以要用 `--env-file .env` 指向根目录的 `.env`（由 `.env.example` 复制而来）。漏掉这个参数时，密码等变量会静默退回默认值 `YourStrongPassword`。
 
 已有 Redis 数据卷的部署，升级前先暂停应用写入并备份完整的 `redis_data` 卷。保留 AOF 文件及其清单，先用副本试启动 Redis 8.12.0，并核对短码号段计数、Stream 消费组和待确认消息。需要回退时，用 Redis 7.0 启动升级前的备份。
 

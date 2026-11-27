@@ -117,7 +117,7 @@ npm run dev
 #### 2.2.5 Docker Compose 启动
 
 ```bash
-docker-compose up -d
+docker compose --env-file .env -f docker/docker-compose.yml up -d
 ```
 
 Compose 会启动：
@@ -128,7 +128,7 @@ Compose 会启动：
 | `redis` | `redis:7.0-alpine` | `6379` | 默认开启密码 |
 | `app` | `ghcr.io/haotangyuan/shortlink:latest` | `8068` | 挂载 Docker 专用配置 |
 
-注意：`shardingsphere-config-docker.yaml` 明确写了数据库密码。ShardingSphere YAML 不解析 `.env` 占位符，修改 MySQL 密码时需要同步改这个文件。
+注意：`docker/shardingsphere-config-docker.yaml` 明确写了数据库密码。ShardingSphere YAML 不解析 `.env` 占位符，修改 MySQL 密码时需要同步改这个文件。
 
 ### 2.3 示例
 
@@ -1162,7 +1162,7 @@ SELECT * FROM t_link_access_stats WHERE full_short_url = '127.0.0.1:8068/0AbC12'
 
 ### 14.1 概述
 
-主配置位于 `src/main/resources/application.yaml`。Docker 部署使用根目录 `application-docker.yaml` 和 `shardingsphere-config-docker.yaml` 挂载到容器 `/app` 下。
+主配置位于 `src/main/resources/application.yaml`。Docker 部署使用 `docker/application-docker.yaml` 和 `docker/shardingsphere-config-docker.yaml` 挂载到容器 `/app` 下。
 
 ### 14.2 详细说明
 
@@ -1254,10 +1254,10 @@ export default defineConfig({
 export MYSQL_PASSWORD='replace-me'
 export REDIS_PASSWORD='replace-me'
 export SHORTLINK_DOMAIN='s.example.com'
-docker-compose up -d
+docker compose --env-file .env -f docker/docker-compose.yml up -d
 ```
 
-同时需要把 `shardingsphere-config-docker.yaml` 中的 `password` 改成和 `MYSQL_PASSWORD` 一致的明文。
+同时需要把 `docker/shardingsphere-config-docker.yaml` 中的 `password` 改成和 `MYSQL_PASSWORD` 一致的明文。
 
 ---
 

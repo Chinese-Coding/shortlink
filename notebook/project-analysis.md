@@ -70,8 +70,7 @@ shortlink/
 ├── notebook/                             # 项目文档与开发记录
 ├── scripts/                              # 构建脚本
 ├── link.sql                              # 完整数据库 DDL（~60KB）
-├── docker-compose.yml                    # 三容器编排
-├── Dockerfile                            # 多阶段构建
+├── docker/                               # Docker 相关：Dockerfile、compose、entrypoint、容器内配置
 └── pom.xml                               # Maven 配置
 ```
 

@@ -29,9 +29,11 @@ Thumbs.db
 docs/
 
 # Docker 相关
-Dockerfile
-docker-compose.yml
-.dockerignore
+# 构建上下文是仓库根目录，BuildKit 会在 Dockerfile 同目录查找 <Dockerfile 名>.dockerignore。
+# 不能忽略整个 docker/，Dockerfile 需要 COPY docker/docker-entrypoint.sh。
+docker/Dockerfile
+docker/Dockerfile.dockerignore
+docker/docker-compose.yml
 
 # 测试相关
 src/test/

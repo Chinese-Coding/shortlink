@@ -13,8 +13,8 @@ mvn clean package -DskipTests
 # Run
 java -jar target/shortlink-all-1.0-SNAPSHOT.jar
 
-# Docker
-docker-compose up -d
+# Docker（Docker 相关文件都在 docker/ 下；--env-file 指向根目录的 .env）
+docker compose --env-file .env -f docker/docker-compose.yml up -d
 
 # Frontend dev
 cd frontend && npm install && npm run dev  # http://localhost:5173/app

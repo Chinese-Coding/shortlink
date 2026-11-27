@@ -24,7 +24,7 @@ COPY src/main/resources/shardingsphere-config.yaml shardingsphere-default.yaml
 COPY src/main/resources/ip2region.xdb ip2region.xdb
 
 # 复制启动脚本
-COPY docker-entrypoint.sh /docker-entrypoint.sh
+COPY docker/docker-entrypoint.sh /docker-entrypoint.sh
 
 # 更改文件所有者
 RUN chown -R appuser:appuser /app && \
