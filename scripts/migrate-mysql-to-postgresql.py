@@ -3,18 +3,34 @@
 
 import argparse
 from contextlib import closing
+from datetime import datetime, timezone
 from hashlib import sha256
 import os
 from pathlib import Path
 import re
 import sys
+from zoneinfo import ZoneInfo
 
 import psycopg
 from psycopg import sql
 import pymysql
 
+# MySQL datetime 不带时区，应用按 Asia/Shanghai 写入；若源库不是该时区，用 MYSQL_TIMEZONE 覆盖。
+SOURCE_TIMEZONE = ZoneInfo(os.getenv("MYSQL_TIMEZONE", "Asia/Shanghai"))
 SCHEMA = Path(__file__).resolve().parents[1] / "link-postgresql.sql"
-TABLES = tuple(sorted(re.findall(r"^CREATE TABLE (\w+) ", SCHEMA.read_text(encoding="utf-8"), re.M)))
+SHARD_COUNT = 16
+
+
+def schema_tables():
+    # SQL 只显式创建 *_0 模板表，其余分表由 DO 块用 LIKE 复制，这里按分片数展开。
+    tables = []
+    for name in re.findall(r"^CREATE TABLE (\w+) ", SCHEMA.read_text(encoding="utf-8"), re.M):
+        template = re.fullmatch(r"(.+)_0", name)
+        tables += [f"{template[1]}_{shard}" for shard in range(SHARD_COUNT)] if template else [name]
+    return tuple(sorted(tables))
+
+
+TABLES = schema_tables()
 STAT_COLUMNS = {"date": "stats_date", "hour": "stats_hour", "weekday": "stats_weekday"}
 
 
@@ -51,15 +67,25 @@ def table_columns(source, target, table):
 
 
 def as_postgresql(row, first_flag):
-    if first_flag is None or row[first_flag] is None:
-        return row
-    if row[first_flag] not in (0, 1):
-        raise ValueError("首访标记应为 0、1 或 NULL")
-    return row[:first_flag] + (bool(row[first_flag]),) + row[first_flag + 1:]
+    # MySQL datetime 不带时区，按 MYSQL_TIMEZONE 补上时区后写入 timestamptz。
+    values = [
+        value.replace(tzinfo=SOURCE_TIMEZONE) if type(value) is datetime and value.tzinfo is None else value
+        for value in row
+    ]
+    if first_flag is not None and values[first_flag] is not None:
+        if values[first_flag] not in (0, 1):
+            raise ValueError("首访标记应为 0、1 或 NULL")
+        values[first_flag] = bool(values[first_flag])
+    return tuple(values)
 
 
 def update_hash(digest, row):
-    digest.update(repr(tuple(row)).encode("utf-8") + b"\n")
+    # 两端的 timestamptz 统一换算成 UTC 再比较，避免会话时区不同导致误报。
+    values = tuple(
+        value.astimezone(timezone.utc) if type(value) is datetime and value.tzinfo is not None else value
+        for value in row
+    )
+    digest.update(repr(values).encode("utf-8") + b"\n")
 
 
 def copy_and_verify(source, target, table, source_next_id, verify_only):

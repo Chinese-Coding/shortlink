@@ -75,6 +75,7 @@ python3 -m venv /tmp/shortlink-migration-venv
 /tmp/shortlink-migration-venv/bin/pip install 'PyMySQL[rsa]==1.2.4' 'psycopg[binary]==3.3.9'
 
 export MYSQL_HOST=127.0.0.1 MYSQL_PORT=3306 MYSQL_USER=linkapp MYSQL_DATABASE=db_shortlink
+export MYSQL_TIMEZONE=Asia/Shanghai  # MySQL datetime 的时区，默认 Asia/Shanghai
 export PGHOST=127.0.0.1 PGPORT=5432 PGUSER=linkapp PGDATABASE=db_shortlink
 read -rsp 'MySQL password: ' MYSQL_PASSWORD; echo
 read -rsp 'PostgreSQL password: ' PGPASSWORD; echo
@@ -85,7 +86,7 @@ export MYSQL_PASSWORD PGPASSWORD
 unset MYSQL_PASSWORD PGPASSWORD
 ```
 
-工具使用 MySQL 的只读一致性快照，按物理表复制记录和 ID，自动转换统计日期列和首访布尔值，并校准 PostgreSQL identity 序列。它在提交前逐表核对行数和内容摘要，任何错误都会回滚目标写入。目标已有记录时会拒绝导入。`--verify-only` 可以在启动新应用前独立重复核对。切换后请抽查旧短链、历史统计和账户数据。
+工具使用 MySQL 的只读一致性快照，按物理表复制记录和 ID，自动转换统计日期列和首访布尔值，按 `MYSQL_TIMEZONE` 把不带时区的 `datetime` 写入 PostgreSQL 的 `timestamptz`，并校准 PostgreSQL identity 序列。它在提交前逐表核对行数和内容摘要，任何错误都会回滚目标写入。目标已有记录时会拒绝导入。`--verify-only` 可以在启动新应用前独立重复核对。切换后请抽查旧短链、历史统计和账户数据。
 
 ### 3. 构建并启动
 
