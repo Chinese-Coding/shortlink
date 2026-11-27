@@ -1,0 +1,65 @@
+# 数据源集合
+dataSources:
+  ds_0:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: org.postgresql.Driver
+    jdbcUrl: jdbc:postgresql://shortlink-postgresql:5432/db_shortlink?stringtype=unspecified
+    username: linkapp
+    # 注意：ShardingSphere 不解析环境变量占位符，请填写与 .env 中 POSTGRES_PASSWORD 一致的明文
+    password: YourStrongPassword
+
+rules:
+  - !SINGLE
+    tables:
+      - ds_0.*
+    defaultDataSource: ds_0
+  - !SHARDING
+    autoTables:
+      t_link:
+        actualDataSources: ds_0
+        shardingStrategy:
+          standard:
+            shardingColumn: gid
+            shardingAlgorithmName: hash_mod_16
+      t_link_goto:
+        actualDataSources: ds_0
+        shardingStrategy:
+          standard:
+            shardingColumn: full_short_url
+            shardingAlgorithmName: hash_mod_16
+      t_group:
+        actualDataSources: ds_0
+        shardingStrategy:
+          standard:
+            shardingColumn: username
+            shardingAlgorithmName: hash_mod_16
+    shardingAlgorithms:
+      hash_mod_16:
+        type: HASH_MOD
+        props:
+          sharding-count: 16
+  # 数据加密存储规则
+  - !ENCRYPT
+    tables:
+      t_user:
+        columns:
+          phone:
+            cipher:
+              name: phone
+              encryptorName: common_encryptor
+          mail:
+            cipher:
+              name: mail
+              encryptorName: common_encryptor
+    # 加密算法
+    encryptors:
+      # 自定义加密算法名称
+      common_encryptor:
+        type: AES
+        props:
+          # AES 加密密钥
+          aes-key-value: d6oadClrrb9A3GWo
+          digest-algorithm-name: SHA-1
+# 展现逻辑 SQL & 真实 SQL
+props:
+  sql-show: true

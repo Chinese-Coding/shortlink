@@ -5,6 +5,7 @@ import dev.haotangyuan.shortlink.common.biz.user.GroupOwnershipVerifier;
 import dev.haotangyuan.shortlink.common.config.GotoDomainWhiteListConfiguration;
 import dev.haotangyuan.shortlink.common.convention.exception.ClientException;
 import dev.haotangyuan.shortlink.dao.entity.LinkDO;
+import dev.haotangyuan.shortlink.dao.entity.LinkGotoDO;
 import dev.haotangyuan.shortlink.dao.mapper.LinkAccessStatsMapper;
 import dev.haotangyuan.shortlink.dao.mapper.LinkGotoMapper;
 import dev.haotangyuan.shortlink.dao.mapper.LinkMapper;
@@ -124,7 +125,7 @@ class LinkServiceImplTest {
                 .build();
         when(linkMapper.selectOne(any())).thenReturn(existing);
         when(linkMapper.update(any(), any())).thenReturn(1);
-        when(linkMapper.insert(any())).thenReturn(1);
+        when(linkMapper.insert(any(LinkDO.class))).thenReturn(1);
         when(linkGotoMapper.update(any(), any())).thenReturn(1);
         LinkUpdateReqDTO request = new LinkUpdateReqDTO();
         request.setOriginGid("group-1");
@@ -139,7 +140,7 @@ class LinkServiceImplTest {
         verify(linkGotoMapper).update(any(), any());
         verify(linkGotoMapper, never()).selectOne(any());
         verify(linkGotoMapper, never()).delete(any());
-        verify(linkGotoMapper, never()).insert(any());
+        verify(linkGotoMapper, never()).insert(any(LinkGotoDO.class));
         verify(linkStatsSaver).invalidateGidCache("short.example/abc123");
         ArgumentCaptor<LinkDO> insertedLink = ArgumentCaptor.forClass(LinkDO.class);
         verify(linkMapper).insert(insertedLink.capture());

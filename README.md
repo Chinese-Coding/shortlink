@@ -1,6 +1,6 @@
 # ShortLink
 
-高性能短链接服务，基于 Spring Boot 3 + Redis + ShardingSphere 构建。
+高性能短链接服务，基于 Spring Boot 4 + Redis + ShardingSphere 构建。
 
 ## Features
 
@@ -14,7 +14,7 @@
 
 ## 简历描述
 
-LinkPilot 是一个基于 Spring Boot 3、Redis、MySQL、ShardingSphere、Caffeine 和 React 构建的智能短链管理平台，支持短链创建、跳转、统计分析和运营管理。
+LinkPilot 是一个基于 Spring Boot 4、Redis、PostgreSQL、ShardingSphere、Caffeine 和 React 构建的智能短链管理平台，支持短链创建、跳转、统计分析和运营管理。
 
 - **分布式短码生成：** 使用 Redis `INCRBY` 按 1 万个序号批量分配号段，以本地原子递增和 20% 阈值异步预取降低远程取号频率；通过仿射置换与定长 Base62 编码生成不可顺序猜测且无算法碰撞的 6/7 位短码。
 - **高并发跳转与缓存一致性：** 构建 Caffeine、Redis、Bloom Filter、空值缓存和数据库的分层查询链路，使用按短链隔离的本地锁与双重检查抑制缓存击穿；创建事务提交后再预热缓存，更新、回收和分组迁移同步失效缓存，避免脏读与悬空路由。
@@ -28,11 +28,11 @@ LinkPilot 是一个基于 Spring Boot 3、Redis、MySQL、ShardingSphere、Caffe
 
 | 层级 | 技术 |
 |------|------|
-| 语言 | Java 21 |
-| 框架 | Spring Boot 3.1.10 |
-| 构建 | Maven |
-| ORM | MyBatis Plus 3.5.5 |
-| 数据库 | MySQL 8.0 + ShardingSphere 5.3.2（16 表分片） |
+| 语言 | Java 25、Kotlin 2.4.21 |
+| 框架 | Spring Boot 4.2.0 |
+| 构建 | Maven（Java/Kotlin 混合编译） |
+| ORM | MyBatis Plus 3.5.18 |
+| 数据库 | PostgreSQL 19 + ShardingSphere 5.5.3（16 表分片） |
 | 缓存 | Caffeine + Redis + Redisson Bloom Filter |
 | 消息队列 | Redis Stream + Consumer Group |
 | 限流 | Guava RateLimiter + Redis Lua 滑动窗口 |
@@ -45,24 +45,48 @@ LinkPilot 是一个基于 Spring Boot 3、Redis、MySQL、ShardingSphere、Caffe
 ### 1. 环境准备
 
 ```bash
-java -version  # JDK 21
-mvn -version   # Maven 3.6+
-mysql --version # MySQL 8.0
-redis-cli ping  # Redis 7.0 → PONG
+java -version  # JDK 25
+mvn -version   # Maven 3.6.3+
+psql --version # PostgreSQL 19
+redis-cli ping  # Redis 8.12.0 → PONG
 ```
 
-### 2. 初始化数据库
+### 2. 初始化 PostgreSQL
+
+以数据库管理员身份创建应用角色和数据库，然后用应用角色加载 schema：
 
 ```sql
-CREATE DATABASE IF NOT EXISTS db_shortlink DEFAULT CHARACTER SET utf8mb4;
-CREATE USER IF NOT EXISTS 'linkapp'@'127.0.0.1' IDENTIFIED BY 'YourStrongPassword';
-GRANT ALL PRIVILEGES ON db_shortlink.* TO 'linkapp'@'127.0.0.1';
-FLUSH PRIVILEGES;
+CREATE ROLE linkapp LOGIN PASSWORD 'YourStrongPassword';
+CREATE DATABASE db_shortlink OWNER linkapp;
 ```
 
 ```bash
-mysql -u root -p db_shortlink < link.sql
+psql -h 127.0.0.1 -U linkapp -d db_shortlink -v ON_ERROR_STOP=1 -f link-postgresql.sql
 ```
+
+将 ShardingSphere 配置中的连接地址、密码及 AES 密钥设为部署值。Docker Compose 会在空 PostgreSQL 数据卷上初始化 schema。`link.sql` 保留了原 MySQL 表定义。已有实例按下方步骤导入数据并校验后再切换连接。
+
+#### 导入已有 MySQL 数据
+
+先在备份副本上演练。实际切换时暂停旧应用和统计消费者，备份 MySQL 和 Redis，并让新应用保持停止。用 `link-postgresql.sql` 初始化空的 PostgreSQL 目标库。请沿用旧应用的 AES 密钥、短链域名和 Redis 数据。
+
+```bash
+python3 -m venv /tmp/shortlink-migration-venv
+/tmp/shortlink-migration-venv/bin/pip install 'PyMySQL[rsa]==1.2.4' 'psycopg[binary]==3.3.9'
+
+export MYSQL_HOST=127.0.0.1 MYSQL_PORT=3306 MYSQL_USER=linkapp MYSQL_DATABASE=db_shortlink
+export MYSQL_TIMEZONE=Asia/Shanghai  # MySQL datetime 的时区，默认 Asia/Shanghai
+export PGHOST=127.0.0.1 PGPORT=5432 PGUSER=linkapp PGDATABASE=db_shortlink
+read -rsp 'MySQL password: ' MYSQL_PASSWORD; echo
+read -rsp 'PostgreSQL password: ' PGPASSWORD; echo
+export MYSQL_PASSWORD PGPASSWORD
+
+/tmp/shortlink-migration-venv/bin/python scripts/migrate-mysql-to-postgresql.py
+/tmp/shortlink-migration-venv/bin/python scripts/migrate-mysql-to-postgresql.py --verify-only
+unset MYSQL_PASSWORD PGPASSWORD
+```
+
+工具使用 MySQL 的只读一致性快照，按物理表复制记录和 ID，自动转换统计日期列和首访布尔值，按 `MYSQL_TIMEZONE` 把不带时区的 `datetime` 写入 PostgreSQL 的 `timestamptz`，并校准 PostgreSQL identity 序列。它在提交前逐表核对行数和内容摘要，任何错误都会回滚目标写入。目标已有记录时会拒绝导入。`--verify-only` 可以在启动新应用前独立重复核对。切换后请抽查旧短链、历史统计和账户数据。
 
 ### 3. 构建并启动
 
@@ -78,11 +102,19 @@ mvn spring-boot:run -Dspring-boot.run.profiles=local
 # 或：java -jar target/shortlink-all-1.0-SNAPSHOT.jar --spring.profiles.active=local
 ```
 
-或 Docker：
+如果部署时使用自定义的 ShardingSphere 配置，请参考仓库中的两份分片 YAML，更新 `!SINGLE`、`autoTables` 和 `!ENCRYPT` 的 `cipher` 配置，并保留原有分片键、分片数量和 AES 密钥。自定义应用 YAML 也需设置 `spring.http.converters.preferred-json-mapper: jackson2`，以保留现有响应格式。
+
+或使用当前源码构建 Docker 镜像：
 
 ```bash
-docker-compose up -d
+mvn clean package
+docker build -f docker/Dockerfile -t ghcr.io/haotangyuan/shortlink:latest .
+docker compose --env-file .env -f docker/docker-compose.yml up -d
 ```
+
+Docker 相关文件（`Dockerfile`、`docker-compose.yml`、`docker-entrypoint.sh`、两份 Docker 专用 YAML）都在 `docker/` 下，构建上下文仍是仓库根目录。Compose 默认只读取 `docker/` 下的 `.env`，所以要用 `--env-file .env` 指向根目录的 `.env`（由 `.env.example` 复制而来）。漏掉这个参数时，密码等变量会静默退回默认值 `YourStrongPassword`。
+
+已有 Redis 数据卷的部署，升级前先暂停应用写入并备份完整的 `redis_data` 卷。保留 AOF 文件及其清单，先用副本试启动 Redis 8.12.0，并核对短码号段计数、Stream 消费组和待确认消息。需要回退时，用 Redis 7.0 启动升级前的备份。
 
 ### 4. 前端开发
 
@@ -96,6 +128,10 @@ cd frontend && npm install && npm run dev
 - **API 文档（Scalar）**：http://127.0.0.1:8068/scalar.html
 - **Swagger UI**：http://127.0.0.1:8068/swagger-ui/index.html
 - **MCP 端点**：http://127.0.0.1:8068/api/mcp
+
+### 可选启用虚拟线程
+
+本地运行时，在启动命令前设置 `SPRING_THREADS_VIRTUAL_ENABLED=true`。Docker Compose 部署可在 `.env` 中设置同名变量，再重建应用容器。默认关闭。启用后，Spring Boot 会为 Tomcat 请求处理和自动配置的调度器使用虚拟线程。Redis Stream 的消费者并发度仍由应用的消费者线程池配置决定。
 
 ## 核心设计
 
@@ -146,7 +182,7 @@ THREADS=100 TARGET_RPS=400 DURATION_SECONDS=40 ./scripts/run-benchmark.sh create
 | --- | --- |
 | 代码版本 | Git commit SHA；工作区有改动时标记 `dirty` |
 | 环境 | CPU、内存、操作系统、JDK/JVM 参数、JMeter 版本 |
-| 拓扑 | 压测机与服务是否同机，应用/MySQL/Redis 实例数 |
+| 拓扑 | 压测机与服务是否同机，应用/数据库/Redis 实例数 |
 | 场景 | 接口、并发线程、爬升时间、稳定运行时间、数据预热方式 |
 | 结果 | 吞吐量、平均延迟、P90/P95/P99、错误率、CPU/内存峰值 |
 

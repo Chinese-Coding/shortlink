@@ -2,11 +2,16 @@ server:
   port: 8068
 
 spring:
+  main:
+    keep-alive: ${spring.threads.virtual.enabled:false}
   datasource:
     # ShardingSphere 对 Driver 自定义，实现分库分表等隐藏逻辑
     driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
     # ShardingSphere 配置文件路径
     url: jdbc:shardingsphere:classpath:shardingsphere-config.yaml
+  http:
+    converters:
+      preferred-json-mapper: jackson2
   mvc:
     view:
       prefix: /templates/

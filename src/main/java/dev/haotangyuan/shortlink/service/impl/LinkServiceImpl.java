@@ -2,7 +2,6 @@ package dev.haotangyuan.shortlink.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.text.StrBuilder;
 import cn.hutool.core.util.ArrayUtil;
@@ -14,7 +13,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import dev.haotangyuan.shortlink.common.biz.user.GroupOwnershipVerifier;
 import dev.haotangyuan.shortlink.common.biz.user.UserContext;
 import dev.haotangyuan.shortlink.common.config.GotoDomainWhiteListConfiguration;
@@ -64,6 +63,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -463,14 +464,14 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, LinkDO> implements 
     }
 
     private Date normalizeValidDate(Date validDate) {
-        Date now = new Date();
-        if (validDate != null && !validDate.after(now)) {
+        var now = ZonedDateTime.now().truncatedTo(ChronoUnit.MILLIS);
+        if (validDate == null) {
+            return Date.from(now.plusDays(1).toInstant());
+        }
+        if (validDate.getTime() <= now.toInstant().toEpochMilli()) {
             throw new ClientException("有效期必须晚于当前时间");
         }
-        Date maxValidDate = DateUtil.offsetDay(now, 3);
-        if (validDate == null) {
-            return DateUtil.offsetDay(now, 1);
-        }
+        var maxValidDate = Date.from(now.plusDays(3).toInstant());
         return validDate.after(maxValidDate) ? maxValidDate : validDate;
     }
 

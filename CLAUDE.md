@@ -13,20 +13,20 @@ mvn clean package -DskipTests
 # Run
 java -jar target/shortlink-all-1.0-SNAPSHOT.jar
 
-# Docker
-docker-compose up -d
+# Docker（Docker 相关文件都在 docker/ 下；--env-file 指向根目录的 .env）
+docker compose --env-file .env -f docker/docker-compose.yml up -d
 
 # Frontend dev
 cd frontend && npm install && npm run dev  # http://localhost:5173/app
 ```
 
-Prerequisites: Java 21, Maven 3.6+, MySQL 8.0+, Redis 7.0+.
+Prerequisites: Java 25, Maven 3.6.3+, PostgreSQL 19, Redis 8.12.0.
 
-Database init: `mysql -u root -p db_shortlink < link.sql`
+Database init: `psql -h 127.0.0.1 -U linkapp -d db_shortlink -v ON_ERROR_STOP=1 -f link-postgresql.sql`
 
 ## Architecture
 
-High-performance URL shortener. Spring Boot 3 backend + React frontend.
+High-performance URL shortener. Spring Boot 4 backend + React frontend.
 
 ### Core Flow
 
@@ -78,13 +78,15 @@ Redis Stream + Consumer Group 异步处理统计。`StatsConsumer` 消费后通�
 ## Environment Variables
 
 See `.env.example`. Key ones:
-- `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USERNAME`, `MYSQL_PASSWORD` — MySQL
+- `POSTGRES_PASSWORD` — PostgreSQL Docker password
 - `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` — Redis
 - `SERVER_PORT` — 默认 8068
 
 ## Conventions
 
-- Lombok everywhere (`@Slf4j`, `@RequiredArgsConstructor`, `@Data`)
+- Java and Kotlin share `src/main/java/` and `src/test/java/`. Maven compiles Kotlin before javac for each source set.
+- Keep the existing JVM signatures when migrating Java callers. Use `@JvmStatic` for Java static entry points and Kotlin annotation use-site targets for mapped fields.
+- Use Lombok in Java (`@Slf4j`, `@RequiredArgsConstructor`, `@Data`) and Kotlin properties and constructors in Kotlin.
 - MyBatis-Plus for DB access (`BaseMapper`, `LambdaQueryWrapper`)
 - 统一响应 `Result<T>`，错误码 `ErrorCode` 枚举
 - DTO/VO 分层：`dto/req/` 请求参数，`vo/` 响应视图
