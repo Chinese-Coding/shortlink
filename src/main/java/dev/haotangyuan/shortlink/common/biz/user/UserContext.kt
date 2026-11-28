@@ -1,7 +1,6 @@
 package dev.haotangyuan.shortlink.common.biz.user
 
 import com.alibaba.ttl.TransmittableThreadLocal
-import dev.haotangyuan.shortlink.dto.biz.UserInfoDTO
 
 /** 用户上下文：仅保存 username */
 open class UserContext {
@@ -12,14 +11,6 @@ open class UserContext {
         @JvmStatic
         fun setUsername(username: String?) {
             usernameHolder.set(username)
-        }
-
-        /** 兼容旧用法：从对象设置，仅取 username */
-        @JvmStatic
-        fun setUser(user: UserInfoDTO?) {
-            if (user != null) {
-                setUsername(user.username)
-            }
         }
 
         /** 获取上下文中的用户名 */
