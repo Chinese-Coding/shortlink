@@ -45,6 +45,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.github.benmanes.caffeine.cache.Cache;
+import org.jspecify.annotations.NonNull;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RLock;
 import org.redisson.api.RReadWriteLock;
@@ -55,6 +56,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -69,7 +71,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static dev.haotangyuan.shortlink.common.constant.LinkConstant.UV_COOKIE_MAX_AGE_SECONDS;
+import static dev.haotangyuan.shortlink.common.constant.LinkConstant.VISITOR_COOKIE_MAX_AGE_SECONDS;
 import static dev.haotangyuan.shortlink.common.constant.RedisKeyConstant.*;
 import static dev.haotangyuan.shortlink.common.constant.UserConstant.PUBLIC_GID;
 import static dev.haotangyuan.shortlink.common.constant.UserConstant.PUBLIC_USERNAME;
@@ -106,33 +108,42 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, LinkDO> implements 
     @Value("${short-link.domain.default}")
     private String createLinkDefaultDomain;
 
+    /**
+     * 创建短链接，依次校验分组和请求参数、生成短码并写入详情和路由记录。
+     * 两张表在同一事务内写入，事务提交后预热 Redis 跳转缓存。
+     */
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public LinkCreateVO createLink(LinkCreateReqDTO linkCreateReqDTO) {
-        // 未登录（public）创建：强制使用公共分组
-        String currentUsername = UserContext.getUsername();
+    public @NonNull LinkCreateVO createLink(@NonNull LinkCreateReqDTO linkCreateReqDTO) {
+        // 匿名请求在用户上下文中标记为 public，强制归入公共分组。
+        var currentUsername = UserContext.getUsername();
         if (java.util.Objects.equals(currentUsername, PUBLIC_USERNAME)) {
             linkCreateReqDTO.setGid(PUBLIC_GID);
         } else {
-            // 鉴权：校验分组归属
+            // 先从 Redis 检查分组归属，缓存未命中时查库确认分组属于当前用户且未删除。
             groupOwnershipService.assertOwnedByCurrentUser(linkCreateReqDTO.getGid());
         }
+
+        // 校验公开 HTTP(S) 地址、URL 和描述长度，以及启用时的域名白名单。
         verificationWhitelist(linkCreateReqDTO.getOriginUrl());
         validateDescription(linkCreateReqDTO.getDescribe());
 
-        // 设置默认值
+        // 创建类型缺省为 0。链接统一使用自定义有效期，默认一天，最长三天。
+        // 请求指定的过期时间必须晚于当前时间。
         if (linkCreateReqDTO.getCreatedType() == null) {
             linkCreateReqDTO.setCreatedType(0);
         }
         linkCreateReqDTO.setValidDateType(ValidDateTypeEnum.CUSTOM.getType());
         linkCreateReqDTO.setValidDate(normalizeValidDate(linkCreateReqDTO.getValidDate()));
 
-        String shortCode = ShortCodeUtil.next();
-        String fullShortUrl = StrBuilder.create(createLinkDefaultDomain)
+        // 从 Redis 分配给当前实例的号段中取序号，经仿射变换和 Base62 编码得到定长短码。
+        var shortCode = ShortCodeUtil.next();
+        var fullShortUrl = StrBuilder.create(createLinkDefaultDomain)
                 .append("/")
                 .append(shortCode)
                 .toString();
-        LinkDO shortLinkDO = LinkDO.builder()
+        // t_link 按 gid 分片，保存跳转地址、有效期和初始统计值等详情。
+        var shortLinkDO = LinkDO.builder()
                 .domain(createLinkDefaultDomain)
                 .originUrl(linkCreateReqDTO.getOriginUrl())
                 .gid(linkCreateReqDTO.getGid())
@@ -149,22 +160,26 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, LinkDO> implements 
                 .fullShortUrl(fullShortUrl)
                 .favicon(linkUtil.getFavicon(linkCreateReqDTO.getOriginUrl()))
                 .build();
-        LinkGotoDO linkGotoDO = LinkGotoDO.builder()
+        // t_link_goto 按完整短链分片。跳转缓存未命中时，先查出 gid，再定位详情分片。
+        var linkGotoDO = LinkGotoDO.builder()
                 .fullShortUrl(fullShortUrl)
                 .gid(linkCreateReqDTO.getGid())
                 .build();
+        // 任一条记录写入失败都会使创建事务回滚。
         try {
             if (baseMapper.insert(shortLinkDO) < 1 || linkGotoMapper.insert(linkGotoDO) < 1) {
                 throw new ServiceException("短链接创建失败，请稍后重试");
             }
         } catch (DuplicateKeyException ex) {
-            // 首先判断是否存在布隆过滤器，如果不存在直接新增
+            // 唯一键冲突时补齐布隆过滤器，并结束本次创建。
             if (!shortUriCreateCachePenetrationBloomFilter.contains(fullShortUrl)) {
                 shortUriCreateCachePenetrationBloomFilter.add(fullShortUrl);
             }
             throw new ServiceException(String.format("短链接：%s 生成重复", fullShortUrl));
         }
+        // 布隆过滤器用于跳转时过滤明显不存在的短链。
         shortUriCreateCachePenetrationBloomFilter.add(fullShortUrl);
+        // 事务提交后写入跳转映射并清理空值缓存。预热失败仅记录日志。
         warmRedirectCacheAfterCommit(fullShortUrl, linkCreateReqDTO.getOriginUrl(), linkCreateReqDTO.getValidDate());
         return LinkCreateVO.builder()
                 .fullShortUrl("http://" + shortLinkDO.getFullShortUrl())
@@ -316,7 +331,7 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, LinkDO> implements 
     }
 
     @Override
-    public List<GroupLinkCountQueryVO> listGroupLinkCount(List<String> gidList) {
+    public @NonNull List<GroupLinkCountQueryVO> listGroupLinkCount(@NonNull List<String> gidList) {
         // 鉴权：校验分组列表归属
         groupOwnershipService.assertAllOwnedByCurrentUser(gidList);
         if (CollUtil.isEmpty(gidList)) {
@@ -336,19 +351,21 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, LinkDO> implements 
 
     @Override
     public void restoreUrl(String shortUri, ServletRequest request, ServletResponse response) throws IOException {
-        String serverName = request.getServerName();
-        String serverPort = Optional.of(request.getServerPort())
+        // 拼接出完整的短链接
+        var serverName = request.getServerName();
+        var serverPort = Optional.of(request.getServerPort())
                 .filter(each -> !Objects.equals(each, 80))
                 .map(String::valueOf)
                 .map(each -> ":" + each)
                 .orElse("");
-        String fullShortUrl = StrBuilder.create(serverName)
+        var fullShortUrl = StrBuilder.create(serverName)
                 .append(serverPort)
                 .append("/")
                 .append(shortUri)
                 .toString();
+
         // 1. 优先查询本地 Caffeine 缓存
-        String originalLink = redirectCache.getIfPresent(fullShortUrl);
+        var originalLink = redirectCache.getIfPresent(fullShortUrl);
         if (StrUtil.isNotBlank(originalLink)) {
             doRedirect(originalLink, fullShortUrl, request, response);
             return;
@@ -424,7 +441,7 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, LinkDO> implements 
     }
 
     @Override
-    public LinkBatchCreateVO batchCreateLink(LinkBatchCreateReqDTO linkBatchCreateReqDTO) {
+    public @NonNull LinkBatchCreateVO batchCreateLink(LinkBatchCreateReqDTO linkBatchCreateReqDTO) {
         List<String> originUrls = linkBatchCreateReqDTO.getOriginUrls();
         if (CollUtil.isEmpty(originUrls)) {
             throw new ClientException("批量创建链接不能为空");
@@ -487,13 +504,14 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, LinkDO> implements 
                 stringRedisTemplate.opsForValue().set(
                         String.format(GOTO_SHORT_LINK_KEY, fullShortUrl),
                         originUrl,
-                        LinkUtil.getLinkCacheValidTime(validDate), TimeUnit.MILLISECONDS
+                        Expiration.milliseconds(LinkUtil.getLinkCacheValidTime(validDate))
                 );
                 stringRedisTemplate.delete(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUrl));
             } catch (Exception ex) {
                 log.warn("Warm redirect cache after create failed, fullShortUrl={}", fullShortUrl, ex);
             }
         };
+        // 如果同步事务已经启动, 就等事务成功后再调用
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
@@ -506,44 +524,52 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, LinkDO> implements 
         }
     }
 
+    /**
+     * 确定本次访问的浏览器访客 ID，并组装供 doRedirect 入队的统计记录。
+     */
     private LinkStatsRecordDTO buildLinkStatsRecordAndSetUser(String fullShortUrl, ServletRequest request, ServletResponse response) {
-        Cookie[] cookies = ((HttpServletRequest) request).getCookies();
-        AtomicReference<String> uv = new AtomicReference<>();
-        // UV Cookie 最大保留 3 个月（从常量类提取）
+        var cookies = ((HttpServletRequest) request).getCookies();
+        // Cookie 查找和生成都在当前请求线程执行，使用可变容器让 Lambda 保存访客 ID。
+        var visitorId = new AtomicReference<String>();
+        // 缺少 visitorId Cookie 时生成 UUID，通过响应发给浏览器，最长保留 3 个月。
         Runnable addResponseCookieTask = () -> {
-            uv.set(UUID.fastUUID().toString());
-            Cookie uvCookie = new Cookie("uv", uv.get());
-            uvCookie.setMaxAge(UV_COOKIE_MAX_AGE_SECONDS);
-            uvCookie.setPath(StrUtil.sub(fullShortUrl, fullShortUrl.indexOf("/"), fullShortUrl.length()));
-            ((HttpServletResponse) response).addCookie(uvCookie);
+            visitorId.set(UUID.fastUUID().toString());
+            var visitorCookie = new Cookie("visitorId", visitorId.get());
+            visitorCookie.setMaxAge(VISITOR_COOKIE_MAX_AGE_SECONDS);
+            // 路径使用当前短链的路径，例如 /Ab123x，实现按短链识别访客。
+            visitorCookie.setPath(StrUtil.sub(fullShortUrl, fullShortUrl.indexOf("/"), fullShortUrl.length()));
+            ((HttpServletResponse) response).addCookie(visitorCookie);
         };
+        // 复用请求中的第一个 visitorId Cookie，保留原有有效期。
         if (ArrayUtil.isNotEmpty(cookies)) {
             Arrays.stream(cookies)
-                    .filter(each -> Objects.equals(each.getName(), "uv"))
+                    .filter(each -> Objects.equals(each.getName(), "visitorId"))
                     .findFirst()
                     .map(Cookie::getValue)
-                    .ifPresentOrElse(uv::set, addResponseCookieTask);
+                    .ifPresentOrElse(visitorId::set, addResponseCookieTask);
         } else {
             addResponseCookieTask.run();
         }
-        String uip = LinkUtil.getActualIp(((HttpServletRequest) request));
-        String os = LinkUtil.getOs(((HttpServletRequest) request));
-        String browser = LinkUtil.getBrowser(((HttpServletRequest) request));
-        String device = LinkUtil.getDevice(((HttpServletRequest) request));
+        // 访客 ID 用于 UV 去重，uip 保存本次请求 IP，同时采集访问环境和时间。
+        var uip = LinkUtil.getActualIp(((HttpServletRequest) request));
+        var os = LinkUtil.getOs(((HttpServletRequest) request));
+        var browser = LinkUtil.getBrowser(((HttpServletRequest) request));
+        var device = LinkUtil.getDevice(((HttpServletRequest) request));
         return LinkStatsRecordDTO.builder()
                 .fullShortUrl(fullShortUrl)
-                .uv(uv.get())
+                .visitorId(visitorId.get())
                 .uip(uip)
                 .os(os)
                 .browser(browser)
                 .device(device)
-                .currentDate(new Date())
+                .accessTime(new Date())
                 .build();
     }
 
     @Override
-    public void linkStats(LinkStatsRecordDTO linkStatsRecordDTO) {
-        Map<String, String> producerMap = new HashMap<>();
+    public void linkStats(@NonNull LinkStatsRecordDTO linkStatsRecordDTO) {
+        var producerMap = new HashMap<String, String>();
+        // todo: 直接这么写, 而不商定一个变量去存储, 这样好吗?
         producerMap.put("statsRecord", JSON.toJSONString(linkStatsRecordDTO));
         linkStatsSaveProducer.send(producerMap);
     }
@@ -552,15 +578,18 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, LinkDO> implements 
         if (!LinkUtil.isPublicHttpUrl(originUrl) || originUrl.length() > 1024) {
             throw new ClientException("跳转链接填写错误");
         }
-        Boolean enable = gotoDomainWhiteListConfiguration.getEnable();
+
+        var enable = gotoDomainWhiteListConfiguration.getEnable();
         if (enable == null || !enable) {
             return;
         }
-        String domain = LinkUtil.extractDomain(originUrl);
+
+        var domain = LinkUtil.extractDomain(originUrl);
         if (StrUtil.isBlank(domain)) {
             throw new ClientException("跳转链接填写错误");
         }
-        List<String> details = gotoDomainWhiteListConfiguration.getDetails();
+
+        var details = gotoDomainWhiteListConfiguration.getDetails();
         if (!details.contains(domain)) {
             throw new ClientException("演示环境为避免恶意攻击，请生成以下网站跳转链接：" + gotoDomainWhiteListConfiguration.getNames());
         }

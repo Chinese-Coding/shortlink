@@ -16,6 +16,6 @@ open class LinkConstant {
         /**
          * UV Cookie 最大有效期（秒）- 3个月
          */
-        const val UV_COOKIE_MAX_AGE_SECONDS: Int = 60 * 60 * 24 * 90
+        const val VISITOR_COOKIE_MAX_AGE_SECONDS: Int = 60 * 60 * 24 * 90
     }
 }

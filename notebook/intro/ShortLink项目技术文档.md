@@ -803,7 +803,7 @@ v = epochDay(Asia/Shanghai) % 2
 
 ```mermaid
 flowchart TD
-    A["跳转请求"] --> B["生成 uv cookie / 获取 uip / UA"]
+    A["跳转请求"] --> B["生成 visitorId cookie / 获取 uip / UA"]
     B --> C["XADD statsRecord"]
     C --> D["Consumer Group"]
     D --> E{"Redis 幂等键存在?"}

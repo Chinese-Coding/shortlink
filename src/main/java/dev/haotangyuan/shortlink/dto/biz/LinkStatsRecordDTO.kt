@@ -34,14 +34,14 @@ open class LinkStatsRecordDTO(
     open var device: String? = null,
 
     /**
-     * UV
+     * 访客标识，取自浏览器 visitorId Cookie 中的 UUID
      */
-    open var uv: String? = null,
+    open var visitorId: String? = null,
 
     /**
-     * 当前时间
+     * 访问时间
      */
-    open var currentDate: Date? = null,
+    open var accessTime: Date? = null,
 ) {
 
     override fun equals(other: Any?): Boolean {
@@ -52,8 +52,8 @@ open class LinkStatsRecordDTO(
             os == other.os &&
             browser == other.browser &&
             device == other.device &&
-            uv == other.uv &&
-            currentDate == other.currentDate
+            visitorId == other.visitorId &&
+            accessTime == other.accessTime
     }
 
     protected open fun canEqual(other: Any?): Boolean = other is LinkStatsRecordDTO
@@ -65,14 +65,14 @@ open class LinkStatsRecordDTO(
         result = result * 59 + (os?.hashCode() ?: 43)
         result = result * 59 + (browser?.hashCode() ?: 43)
         result = result * 59 + (device?.hashCode() ?: 43)
-        result = result * 59 + (uv?.hashCode() ?: 43)
-        result = result * 59 + (currentDate?.hashCode() ?: 43)
+        result = result * 59 + (visitorId?.hashCode() ?: 43)
+        result = result * 59 + (accessTime?.hashCode() ?: 43)
         return result
     }
 
     override fun toString(): String =
         "LinkStatsRecordDTO(fullShortUrl=$fullShortUrl, uip=$uip, os=$os, browser=$browser, " +
-            "device=$device, uv=$uv, currentDate=$currentDate)"
+            "device=$device, visitorId=$visitorId, accessTime=$accessTime)"
 
     companion object {
         @JvmStatic
@@ -85,8 +85,8 @@ open class LinkStatsRecordDTO(
         private var os: String? = null
         private var browser: String? = null
         private var device: String? = null
-        private var uv: String? = null
-        private var currentDate: Date? = null
+        private var visitorId: String? = null
+        private var accessTime: Date? = null
 
         open fun fullShortUrl(fullShortUrl: String?): LinkStatsRecordDTOBuilder = apply { this.fullShortUrl = fullShortUrl }
 
@@ -98,9 +98,9 @@ open class LinkStatsRecordDTO(
 
         open fun device(device: String?): LinkStatsRecordDTOBuilder = apply { this.device = device }
 
-        open fun uv(uv: String?): LinkStatsRecordDTOBuilder = apply { this.uv = uv }
+        open fun visitorId(visitorId: String?): LinkStatsRecordDTOBuilder = apply { this.visitorId = visitorId }
 
-        open fun currentDate(currentDate: Date?): LinkStatsRecordDTOBuilder = apply { this.currentDate = currentDate }
+        open fun accessTime(accessTime: Date?): LinkStatsRecordDTOBuilder = apply { this.accessTime = accessTime }
 
         open fun build(): LinkStatsRecordDTO = LinkStatsRecordDTO(
             fullShortUrl,
@@ -108,13 +108,13 @@ open class LinkStatsRecordDTO(
             os,
             browser,
             device,
-            uv,
-            currentDate,
+            visitorId,
+            accessTime,
         )
 
         override fun toString(): String =
             "LinkStatsRecordDTO.LinkStatsRecordDTOBuilder(fullShortUrl=$fullShortUrl, uip=$uip, os=$os, " +
-            "browser=$browser, device=$device, uv=$uv, " +
-            "currentDate=$currentDate)"
+            "browser=$browser, device=$device, visitorId=$visitorId, " +
+            "accessTime=$accessTime)"
     }
 }

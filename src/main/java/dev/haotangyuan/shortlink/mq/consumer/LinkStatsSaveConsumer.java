@@ -33,7 +33,7 @@ public class LinkStatsSaveConsumer implements StreamListener<String, MapRecord<S
 
     @Override
     public void onMessage(MapRecord<String, String, String> message) {
-        RecordId id = message.getId();
+        var id = message.getId();
 
         // 幂等检查
         if (messageQueueIdempotentHandler.isProcessed(id.toString())) {
@@ -41,11 +41,7 @@ public class LinkStatsSaveConsumer implements StreamListener<String, MapRecord<S
             if (messageQueueIdempotentHandler.isAccomplish(id.toString())) {
                 // 已完成，补偿 ACK
                 try {
-                    stringRedisTemplate.opsForStream().acknowledge(
-                            SHORT_LINK_STATS_STREAM_TOPIC_KEY,
-                            SHORT_LINK_STATS_STREAM_GROUP_KEY,
-                            id
-                    );
+                    acknowledge(id);
                 } catch (Exception e) {
                     log.warn("补偿 ACK 失败: {}", id, e);
                 }
@@ -58,9 +54,8 @@ public class LinkStatsSaveConsumer implements StreamListener<String, MapRecord<S
         try {
             // 业务逻辑
             Map<String, String> producerMap = message.getValue();
-            LinkStatsRecordDTO statsRecord = JSON.parseObject(producerMap.get("statsRecord"), LinkStatsRecordDTO.class);
+            var statsRecord = JSON.parseObject(producerMap.get("statsRecord"), LinkStatsRecordDTO.class);
             linkStatsSaver.save(statsRecord, id.toString());
-
         } catch (DuplicateKeyException ex) {
             // messageId 唯一索引冲突 = 已处理过，直接视为成功
             log.info("Message already processed (DB duplicate key), skip: {}", id);
@@ -79,13 +74,15 @@ public class LinkStatsSaveConsumer implements StreamListener<String, MapRecord<S
         }
 
         try {
-            stringRedisTemplate.opsForStream().acknowledge(
-                    SHORT_LINK_STATS_STREAM_TOPIC_KEY,
-                    SHORT_LINK_STATS_STREAM_GROUP_KEY,
-                    id
-            );
+            acknowledge(id);
         } catch (Exception e) {
             log.error("ACK 失败，但业务已成功且已标记，PEL 巡检会补偿: {}", id, e);
         }
+    }
+
+    private void acknowledge(RecordId id) {
+        stringRedisTemplate.opsForStream().acknowledge(
+                SHORT_LINK_STATS_STREAM_TOPIC_KEY, SHORT_LINK_STATS_STREAM_GROUP_KEY, id
+        );
     }
 }
