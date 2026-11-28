@@ -156,7 +156,7 @@ export type LinkStatsAccessRecordVO = {
   network?: string;
   device?: string;
   locale?: string;
-  user?: string;
+  visitorId?: string;
   createTime?: string;
 };
 

@@ -420,7 +420,7 @@ erDiagram
 
 | 表 | 主字段 | 唯一索引 | 作用 |
 |----|--------|----------|------|
-| `t_link_access_logs` | `full_short_url,user,ip,browser,os,network,device,locale,first_flag,message_id` | `message_id` | 原始访问日志和 DB 层幂等兜底 |
+| `t_link_access_logs` | `full_short_url,visitor_id,ip,browser,os,network,device,locale,first_flag,message_id` | `message_id` | 原始访问日志和 DB 层幂等兜底 |
 | `t_link_access_stats` | `full_short_url,date,pv,uv,uip,hour,weekday` | `full_short_url,date,hour` | 按日期和小时聚合 PV/UV/UIP |
 | `t_link_browser_stats` | `full_short_url,date,cnt,browser` | `full_short_url,date,browser` | 浏览器分布 |
 | `t_link_os_stats` | `full_short_url,date,cnt,os` | `full_short_url,date,os` | 操作系统分布 |
@@ -428,7 +428,7 @@ erDiagram
 | `t_link_network_stats` | `full_short_url,date,cnt,network` | `full_short_url,date,network` | 运营商或网络分布 |
 | `t_link_locale_stats` | `full_short_url,date,cnt,country,province,city,adcode` | `full_short_url,date,adcode,province` | 地理位置分布 |
 | `t_link_stats_today` | `full_short_url,date,today_pv,today_uv,today_uip` | `full_short_url,date` | 今日统计表，当前列表页主要从 HLL 和 access_stats 组合读取 |
-| `t_link_first_visit` | `full_short_url,user,create_time` | `full_short_url,user` | 高并发首访判重 |
+| `t_link_first_visit` | `full_short_url,visitor_id,create_time` | `full_short_url,visitor_id` | 高并发首访判重 |
 
 ##### `t_api_token`
 

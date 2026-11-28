@@ -29,8 +29,8 @@ interface LinkAccessLogsMapper : BaseMapper<LinkAccessLogsDO> {
      */
     @Select("""
             SELECT
-                COUNT(tlal."user") AS pv,
-                COUNT(DISTINCT tlal."user") AS uv,
+                COUNT(tlal.visitor_id) AS pv,
+                COUNT(DISTINCT tlal.visitor_id) AS uv,
                 COUNT(DISTINCT tlal.ip) AS uip
             FROM t_link tl
             INNER JOIN t_link_access_logs tlal ON tl.full_short_url = tlal.full_short_url
@@ -48,8 +48,8 @@ interface LinkAccessLogsMapper : BaseMapper<LinkAccessLogsDO> {
      */
     @Select("""
             SELECT
-                COUNT(tls."user") AS pv,
-                COUNT(DISTINCT tls."user") AS uv,
+                COUNT(tls.visitor_id) AS pv,
+                COUNT(DISTINCT tls.visitor_id) AS uv,
                 COUNT(DISTINCT tls.ip) AS uip
             FROM t_link tl
             INNER JOIN t_link_access_logs tls
@@ -120,8 +120,8 @@ interface LinkAccessLogsMapper : BaseMapper<LinkAccessLogsDO> {
      */
     @Select("""
             SELECT
-                COUNT(DISTINCT CASE WHEN tls.first_flag = TRUE THEN tls."user" END) AS "newUserCnt",
-                COUNT(DISTINCT CASE WHEN tls.first_flag = FALSE THEN tls."user" END) AS "oldUserCnt"
+                COUNT(DISTINCT CASE WHEN tls.first_flag = TRUE THEN tls.visitor_id END) AS "newUserCnt",
+                COUNT(DISTINCT CASE WHEN tls.first_flag = FALSE THEN tls.visitor_id END) AS "oldUserCnt"
             FROM t_link tl
             INNER JOIN t_link_access_logs tls
                 ON tl.full_short_url = tls.full_short_url

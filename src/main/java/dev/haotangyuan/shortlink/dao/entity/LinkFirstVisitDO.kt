@@ -22,9 +22,9 @@ open class LinkFirstVisitDO(
     open var fullShortUrl: String? = null,
 
     /**
-     * 用户标识
+     * 访客标识
      */
-    open var user: String? = null,
+    open var visitorId: String? = null,
 
     /**
      * 首次访问时间
@@ -37,7 +37,7 @@ open class LinkFirstVisitDO(
         if (other !is LinkFirstVisitDO || !other.canEqual(this)) return false
         return id == other.id &&
             fullShortUrl == other.fullShortUrl &&
-            user == other.user &&
+            visitorId == other.visitorId &&
             createTime == other.createTime
     }
 
@@ -47,13 +47,13 @@ open class LinkFirstVisitDO(
         var result = 1
         result = result * 59 + (id?.hashCode() ?: 43)
         result = result * 59 + (fullShortUrl?.hashCode() ?: 43)
-        result = result * 59 + (user?.hashCode() ?: 43)
+        result = result * 59 + (visitorId?.hashCode() ?: 43)
         result = result * 59 + (createTime?.hashCode() ?: 43)
         return result
     }
 
     override fun toString(): String =
-        "LinkFirstVisitDO(id=$id, fullShortUrl=$fullShortUrl, user=$user, createTime=$createTime)"
+        "LinkFirstVisitDO(id=$id, fullShortUrl=$fullShortUrl, visitorId=$visitorId, createTime=$createTime)"
 
     companion object {
         @JvmStatic
@@ -63,21 +63,21 @@ open class LinkFirstVisitDO(
     open class LinkFirstVisitDOBuilder internal constructor() {
         private var id: Long? = null
         private var fullShortUrl: String? = null
-        private var user: String? = null
+        private var visitorId: String? = null
         private var createTime: Date? = null
 
         open fun id(id: Long?): LinkFirstVisitDOBuilder = apply { this.id = id }
 
         open fun fullShortUrl(fullShortUrl: String?): LinkFirstVisitDOBuilder = apply { this.fullShortUrl = fullShortUrl }
 
-        open fun user(user: String?): LinkFirstVisitDOBuilder = apply { this.user = user }
+        open fun visitorId(visitorId: String?): LinkFirstVisitDOBuilder = apply { this.visitorId = visitorId }
 
         open fun createTime(createTime: Date?): LinkFirstVisitDOBuilder = apply { this.createTime = createTime }
 
-        open fun build(): LinkFirstVisitDO = LinkFirstVisitDO(id, fullShortUrl, user, createTime)
+        open fun build(): LinkFirstVisitDO = LinkFirstVisitDO(id, fullShortUrl, visitorId, createTime)
 
         override fun toString(): String =
-            "LinkFirstVisitDO.LinkFirstVisitDOBuilder(id=$id, fullShortUrl=$fullShortUrl, user=$user, " +
+            "LinkFirstVisitDO.LinkFirstVisitDOBuilder(id=$id, fullShortUrl=$fullShortUrl, visitorId=$visitorId, " +
             "createTime=$createTime)"
     }
 }

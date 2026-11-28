@@ -12,8 +12,8 @@ import org.apache.ibatis.annotations.Insert
 interface LinkFirstVisitMapper : BaseMapper<LinkFirstVisitDO> {
 
     @Insert("""
-            INSERT INTO t_link_first_visit (full_short_url, "user") VALUES (#{fullShortUrl}, #{user})
-            ON CONFLICT (full_short_url, "user") DO NOTHING
+            INSERT INTO t_link_first_visit (full_short_url, visitor_id) VALUES (#{fullShortUrl}, #{visitorId})
+            ON CONFLICT (full_short_url, visitor_id) DO NOTHING
             """)
     fun insertIgnore(entity: LinkFirstVisitDO): Int
 }

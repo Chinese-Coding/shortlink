@@ -25,18 +25,17 @@
 - `mq/consumer/LinkStatsSaver.java`：读取新字段，改用 `Instant` 计算
 - `common/constant/LinkConstant.kt`：Cookie 有效期常量改名
 - `notebook/intro/ShortLink项目技术文档.md`：流程图中的 Cookie 名
-- 不涉及数据库变更和配置变更。访问日志表的 `"user"` 列保持不变。
+- 本次不涉及数据库变更和配置变更（访问日志表的 `"user"` 列随后改为 `visitor_id`，见 `2026-11-28-访问日志user列改名visitor_id.md`）。
 
 ## 测试
 
 - 已用 grep 确认源码中没有残留的 `currentDate` / `getCurrentDate` / `statsRecord.getUv()` 引用
   （`LinkServiceImpl` 更新有效期处的局部变量 `currentDate`、统计表和 VO 里的 `uv` 是另一个用途，未改动）。
-- 尚未编译和端到端验证：开发机上没有 `mvn`。待补：编译通过，并走一遍"创建 → 跳转 → 统计"，
+- `mvn -q compile` 编译通过。待补：走一遍"创建 → 跳转 → 统计"的端到端测试，
   确认响应里出现 `visitorId` Cookie，访问日志和 UV 统计正常。
 
 ## 遗留问题
 
 - 上线前需排空 Redis Stream 及 Pending 中的旧消息，否则旧消息反序列化后 `accessTime` 为 null
   （`LinkStatsSaver` 会回退为当前时间），`visitorId` 为空（UV 统计会漏计）。
-- 访问日志表 `t_link_access_logs` 和首访表 `t_link_first_visit` 的 `"user"` 列存的就是访客标识，
-  `user` 是 PostgreSQL 保留字且容易和 `username` 混淆。是否改为 `visitor_id` 待定，需要同步修改建表 SQL、Mapper 和 VO。
+- 访客标识列的改名已在后续提交完成，见 `2026-11-28-访问日志user列改名visitor_id.md`。

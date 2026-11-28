@@ -1,6 +1,5 @@
 package dev.haotangyuan.shortlink.dao.entity
 
-import com.baomidou.mybatisplus.annotation.TableField
 import com.baomidou.mybatisplus.annotation.TableName
 import dev.haotangyuan.shortlink.common.database.BaseDO
 
@@ -22,10 +21,9 @@ open class LinkAccessLogsDO(
     open var fullShortUrl: String? = null,
 
     /**
-     * 用户信息
+     * 访客标识
      */
-    @field:TableField("\"user\"")
-    open var user: String? = null,
+    open var visitorId: String? = null,
 
     /**
      * 浏览器
@@ -74,7 +72,7 @@ open class LinkAccessLogsDO(
         if (!super.equals(other)) return false
         return id == other.id &&
             fullShortUrl == other.fullShortUrl &&
-            user == other.user &&
+            visitorId == other.visitorId &&
             browser == other.browser &&
             os == other.os &&
             ip == other.ip &&
@@ -91,7 +89,7 @@ open class LinkAccessLogsDO(
         var result = super.hashCode()
         result = result * 59 + (id?.hashCode() ?: 43)
         result = result * 59 + (fullShortUrl?.hashCode() ?: 43)
-        result = result * 59 + (user?.hashCode() ?: 43)
+        result = result * 59 + (visitorId?.hashCode() ?: 43)
         result = result * 59 + (browser?.hashCode() ?: 43)
         result = result * 59 + (os?.hashCode() ?: 43)
         result = result * 59 + (ip?.hashCode() ?: 43)
@@ -104,7 +102,7 @@ open class LinkAccessLogsDO(
     }
 
     override fun toString(): String =
-        "LinkAccessLogsDO(id=$id, fullShortUrl=$fullShortUrl, user=$user, browser=$browser, os=$os, ip=$ip, " +
+        "LinkAccessLogsDO(id=$id, fullShortUrl=$fullShortUrl, visitorId=$visitorId, browser=$browser, os=$os, ip=$ip, " +
             "network=$network, device=$device, locale=$locale, firstFlag=$firstFlag, messageId=$messageId)"
 
     companion object {
@@ -115,7 +113,7 @@ open class LinkAccessLogsDO(
     open class LinkAccessLogsDOBuilder internal constructor() {
         private var id: Long? = null
         private var fullShortUrl: String? = null
-        private var user: String? = null
+        private var visitorId: String? = null
         private var browser: String? = null
         private var os: String? = null
         private var ip: String? = null
@@ -129,7 +127,7 @@ open class LinkAccessLogsDO(
 
         open fun fullShortUrl(fullShortUrl: String?): LinkAccessLogsDOBuilder = apply { this.fullShortUrl = fullShortUrl }
 
-        open fun user(user: String?): LinkAccessLogsDOBuilder = apply { this.user = user }
+        open fun visitorId(visitorId: String?): LinkAccessLogsDOBuilder = apply { this.visitorId = visitorId }
 
         open fun browser(browser: String?): LinkAccessLogsDOBuilder = apply { this.browser = browser }
 
@@ -150,7 +148,7 @@ open class LinkAccessLogsDO(
         open fun build(): LinkAccessLogsDO = LinkAccessLogsDO(
             id,
             fullShortUrl,
-            user,
+            visitorId,
             browser,
             os,
             ip,
@@ -162,7 +160,7 @@ open class LinkAccessLogsDO(
         )
 
         override fun toString(): String =
-            "LinkAccessLogsDO.LinkAccessLogsDOBuilder(id=$id, fullShortUrl=$fullShortUrl, user=$user, " +
+            "LinkAccessLogsDO.LinkAccessLogsDOBuilder(id=$id, fullShortUrl=$fullShortUrl, visitorId=$visitorId, " +
             "browser=$browser, os=$os, ip=$ip, " +
             "network=$network, device=$device, locale=$locale, " +
             "firstFlag=$firstFlag, messageId=$messageId)"

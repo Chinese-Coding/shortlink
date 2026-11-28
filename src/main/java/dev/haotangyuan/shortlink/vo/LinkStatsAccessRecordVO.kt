@@ -46,9 +46,9 @@ open class LinkStatsAccessRecordVO(
     open var locale: String? = null,
 
     /**
-     * 用户信息
+     * 访客标识
      */
-    open var user: String? = null,
+    open var visitorId: String? = null,
 
     /**
      * 访问时间
@@ -67,7 +67,7 @@ open class LinkStatsAccessRecordVO(
             network == other.network &&
             device == other.device &&
             locale == other.locale &&
-            user == other.user &&
+            visitorId == other.visitorId &&
             createTime == other.createTime
     }
 
@@ -82,14 +82,14 @@ open class LinkStatsAccessRecordVO(
         result = result * 59 + (network?.hashCode() ?: 43)
         result = result * 59 + (device?.hashCode() ?: 43)
         result = result * 59 + (locale?.hashCode() ?: 43)
-        result = result * 59 + (user?.hashCode() ?: 43)
+        result = result * 59 + (visitorId?.hashCode() ?: 43)
         result = result * 59 + (createTime?.hashCode() ?: 43)
         return result
     }
 
     override fun toString(): String =
         "LinkStatsAccessRecordVO(uvType=$uvType, browser=$browser, os=$os, ip=$ip, network=$network, " +
-            "device=$device, locale=$locale, user=$user, createTime=$createTime)"
+            "device=$device, locale=$locale, visitorId=$visitorId, createTime=$createTime)"
 
     companion object {
         @JvmStatic
@@ -104,7 +104,7 @@ open class LinkStatsAccessRecordVO(
         private var network: String? = null
         private var device: String? = null
         private var locale: String? = null
-        private var user: String? = null
+        private var visitorId: String? = null
         private var createTime: Date? = null
 
         open fun uvType(uvType: String?): LinkStatsAccessRecordVOBuilder = apply { this.uvType = uvType }
@@ -121,7 +121,7 @@ open class LinkStatsAccessRecordVO(
 
         open fun locale(locale: String?): LinkStatsAccessRecordVOBuilder = apply { this.locale = locale }
 
-        open fun user(user: String?): LinkStatsAccessRecordVOBuilder = apply { this.user = user }
+        open fun visitorId(visitorId: String?): LinkStatsAccessRecordVOBuilder = apply { this.visitorId = visitorId }
 
         open fun createTime(createTime: Date?): LinkStatsAccessRecordVOBuilder = apply { this.createTime = createTime }
 
@@ -133,13 +133,13 @@ open class LinkStatsAccessRecordVO(
             network,
             device,
             locale,
-            user,
+            visitorId,
             createTime,
         )
 
         override fun toString(): String =
             "LinkStatsAccessRecordVO.LinkStatsAccessRecordVOBuilder(uvType=$uvType, browser=$browser, os=$os, " +
             "ip=$ip, network=$network, device=$device, " +
-            "locale=$locale, user=$user, createTime=$createTime)"
+            "locale=$locale, visitorId=$visitorId, createTime=$createTime)"
     }
 }

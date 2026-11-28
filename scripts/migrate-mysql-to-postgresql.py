@@ -31,7 +31,7 @@ def schema_tables():
 
 
 TABLES = schema_tables()
-STAT_COLUMNS = {"date": "stats_date", "hour": "stats_hour", "weekday": "stats_weekday"}
+STAT_COLUMNS = {"date": "stats_date", "hour": "stats_hour", "weekday": "stats_weekday", "user": "visitor_id"}
 
 
 def mysql_identifier(name):

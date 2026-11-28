@@ -161,7 +161,7 @@ public class LinkStatsSaver {
         if (StrUtil.isNotBlank(visitorId)) {
             var affected = linkFirstVisitMapper.insertIgnore(LinkFirstVisitDO.builder()
                     .fullShortUrl(fullShortUrl)
-                    .user(visitorId)
+                    .visitorId(visitorId)
                     .build()
             );
             isFirstVisit = (affected > 0);
@@ -179,7 +179,7 @@ public class LinkStatsSaver {
         }
         linkAccessLogsMapper.insert(LinkAccessLogsDO.builder()
                 .fullShortUrl(fullShortUrl)
-                .user(visitorId)
+                .visitorId(visitorId)
                 .ip(uip)
                 .browser(statsRecord.getBrowser())
                 .os(statsRecord.getOs())
