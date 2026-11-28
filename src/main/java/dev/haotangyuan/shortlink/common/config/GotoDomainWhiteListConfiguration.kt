@@ -10,21 +10,21 @@ import org.springframework.stereotype.Component
  */
 @Component
 @ConfigurationProperties(prefix = "short-link.goto-domain.white-list")
-open class GotoDomainWhiteListConfiguration {
+class GotoDomainWhiteListConfiguration {
     /**
      * 是否开启跳转原始链接域名白名单验证
      */
-    open var enable: Boolean? = null
+    var enable: Boolean? = null
 
     /**
      * 跳转原始域名白名单网站名称集合
      */
-    open var names: String? = null
+    var names: String? = null
 
     /**
      * 可跳转的原始链接域名
      */
-    open var details: MutableList<String>? = null
+    var details: MutableList<String>? = null
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -34,7 +34,7 @@ open class GotoDomainWhiteListConfiguration {
             details == other.details
     }
 
-    protected open fun canEqual(other: Any?): Boolean = other is GotoDomainWhiteListConfiguration
+    protected fun canEqual(other: Any?): Boolean = other is GotoDomainWhiteListConfiguration
 
     override fun hashCode(): Int {
         var result = 1

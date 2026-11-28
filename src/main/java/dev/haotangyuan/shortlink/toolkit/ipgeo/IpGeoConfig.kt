@@ -12,14 +12,14 @@ import org.springframework.context.annotation.Configuration
  */
 @Configuration
 @EnableConfigurationProperties(IpGeoProps::class)
-open class IpGeoConfig {
+class IpGeoConfig {
     @Bean
     @ConditionalOnProperty(prefix = "short-link.stats.locale", name = ["provider"], havingValue = "local", matchIfMissing = true)
-    open fun localClient(p: IpGeoProps): IpGeoClient = LocalClient((p.local ?: throw NullPointerException()).dbPath)
+    fun localClient(p: IpGeoProps): IpGeoClient = LocalClient((p.local ?: throw NullPointerException()).dbPath)
 
     @Bean
     @ConditionalOnProperty(prefix = "short-link.stats.locale", name = ["provider"], havingValue = "amap", matchIfMissing = true)
-    open fun AmapClient(p: IpGeoProps): IpGeoClient {
+    fun AmapClient(p: IpGeoProps): IpGeoClient {
         val amap = p.amap ?: throw NullPointerException()
         return AmapClient(amap.key, amap.endpoint, amap.timeout)
     }

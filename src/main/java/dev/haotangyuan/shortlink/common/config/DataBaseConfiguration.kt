@@ -10,10 +10,10 @@ import org.springframework.context.annotation.Configuration
  * @author haotangyuan
  */
 @Configuration
-open class DataBaseConfiguration {
+class DataBaseConfiguration {
     /** 分页插件 */
     @Bean
-    open fun myBatisPlusInterceptor(): MybatisPlusInterceptor {
+    fun myBatisPlusInterceptor(): MybatisPlusInterceptor {
         val interceptor = MybatisPlusInterceptor()
         interceptor.addInnerInterceptor(PaginationInnerInterceptor(DbType.POSTGRE_SQL))
         return interceptor

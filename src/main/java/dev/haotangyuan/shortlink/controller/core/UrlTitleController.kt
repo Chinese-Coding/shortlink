@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController
  * @author haotangyuan
  */
 @RestController
-open class UrlTitleController(private val urlTitleService: UrlTitleService) {
+class UrlTitleController(private val urlTitleService: UrlTitleService) {
 
     /**
      * 根据 URL 获取标题
@@ -22,6 +22,6 @@ open class UrlTitleController(private val urlTitleService: UrlTitleService) {
      * @return Result<String>
      */
     @GetMapping("/api/short-link/v1/title")
-    open fun getTitleByUrl(@RequestParam("url") url: String): Result<String> =
+    fun getTitleByUrl(@RequestParam("url") url: String): Result<String> =
         Results.success(urlTitleService.getTitleByUrl(url))
 }

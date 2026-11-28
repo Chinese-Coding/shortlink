@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
  * @author haotangyuan
  */
 @RestControllerAdvice
-open class GlobalExceptionHandler {
+class GlobalExceptionHandler {
     /** 拦截参数验证异常 */
     @ExceptionHandler(MethodArgumentNotValidException::class)
-    open fun validExceptionHandler(request: HttpServletRequest, ex: MethodArgumentNotValidException): Result<*> {
+    fun validExceptionHandler(request: HttpServletRequest, ex: MethodArgumentNotValidException): Result<*> {
         val message = ex.bindingResult.fieldErrors.firstOrNull()?.defaultMessage.orEmpty()
         log.warn("[{}] {} [ex] {}", request.method, request.requestURL.toString(), message)
         return Results.failure(BaseErrorCode.CLIENT_ERROR.code(), message)
@@ -28,7 +28,7 @@ open class GlobalExceptionHandler {
 
     /** 拦截应用内抛出的异常 */
     @ExceptionHandler(AbstractException::class)
-    open fun abstractException(request: HttpServletRequest, ex: AbstractException): Result<*> {
+    fun abstractException(request: HttpServletRequest, ex: AbstractException): Result<*> {
         val url = request.requestURL.toString()
         val cause = ex.cause
         when {
@@ -41,7 +41,7 @@ open class GlobalExceptionHandler {
 
     /** 拦截未捕获异常 */
     @ExceptionHandler(Throwable::class)
-    open fun defaultErrorHandler(request: HttpServletRequest, throwable: Throwable): Result<*> {
+    fun defaultErrorHandler(request: HttpServletRequest, throwable: Throwable): Result<*> {
         log.error("[{}] {} ", request.method, request.requestURL.toString(), throwable)
         return Results.failure()
     }

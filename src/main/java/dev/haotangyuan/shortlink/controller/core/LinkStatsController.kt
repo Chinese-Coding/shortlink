@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController
  * @author haotangyuan
  */
 @RestController
-open class LinkStatsController(private val linkStatsService: LinkStatsService) {
+class LinkStatsController(private val linkStatsService: LinkStatsService) {
 
     /**
      * 访问单个短链接指定时间内监控数据
@@ -28,7 +28,7 @@ open class LinkStatsController(private val linkStatsService: LinkStatsService) {
      * @return 短链接监控数据
      */
     @GetMapping("/api/short-link/v1/stats")
-    open fun shortLinkStats(linkStatsReqDTO: LinkStatsReqDTO): Result<LinkStatsVO?> =
+    fun shortLinkStats(linkStatsReqDTO: LinkStatsReqDTO): Result<LinkStatsVO?> =
         Results.success(linkStatsService.oneShortLinkStats(linkStatsReqDTO))
 
     /**
@@ -38,7 +38,7 @@ open class LinkStatsController(private val linkStatsService: LinkStatsService) {
      * @return 短链接监控数据
      */
     @GetMapping("/api/short-link/v1/stats/group")
-    open fun groupShortLinkStats(groupStatsReqDTO: GroupStatsReqDTO): Result<LinkStatsVO?> =
+    fun groupShortLinkStats(groupStatsReqDTO: GroupStatsReqDTO): Result<LinkStatsVO?> =
         Results.success(linkStatsService.groupShortLinkStats(groupStatsReqDTO))
 
     /**
@@ -48,7 +48,7 @@ open class LinkStatsController(private val linkStatsService: LinkStatsService) {
      * @return 访问记录监控数据
      */
     @GetMapping("/api/short-link/v1/stats/access-record")
-    open fun shortLinkStatsAccessRecord(
+    fun shortLinkStatsAccessRecord(
         linkStatsAccessRecordReqDTO: LinkStatsAccessRecordReqDTO,
     ): Result<IPage<LinkStatsAccessRecordVO>> =
         Results.success(linkStatsService.shortLinkStatsAccessRecord(linkStatsAccessRecordReqDTO))
@@ -60,7 +60,7 @@ open class LinkStatsController(private val linkStatsService: LinkStatsService) {
      * @return 访问记录监控数据
      */
     @GetMapping("/api/short-link/v1/stats/access-record/group")
-    open fun groupShortLinkStatsAccessRecord(
+    fun groupShortLinkStatsAccessRecord(
         groupStatsAccessRecordReqDTO: GroupStatsAccessRecordReqDTO,
     ): Result<IPage<LinkStatsAccessRecordVO>> =
         Results.success(linkStatsService.groupShortLinkStatsAccessRecord(groupStatsAccessRecordReqDTO))

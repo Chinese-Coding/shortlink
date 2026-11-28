@@ -27,7 +27,7 @@ import java.util.regex.Pattern
  */
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @Component
-open class RateLimitFilter(
+class RateLimitFilter(
     @Qualifier("createRateLimiter") private val createRateLimiter: RateLimiter,
     @Qualifier("redirectRateLimiter") private val redirectRateLimiter: RateLimiter,
     @Qualifier("statsRateLimiter") private val statsRateLimiter: RateLimiter,

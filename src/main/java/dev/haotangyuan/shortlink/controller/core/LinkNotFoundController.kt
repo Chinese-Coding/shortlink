@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping
  * @author haotangyuan
  */
 @Controller
-open class LinkNotFoundController {
+class LinkNotFoundController {
 
     /**
      * 短链接未找到页面
@@ -17,6 +17,6 @@ open class LinkNotFoundController {
      * @return notfound.html
      */
     @RequestMapping("/page/notfound")
-    open fun notfound(): String =
+    fun notfound(): String =
         "notfound"
 }

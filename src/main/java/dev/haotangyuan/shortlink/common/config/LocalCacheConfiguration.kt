@@ -15,7 +15,7 @@ import java.util.concurrent.locks.ReentrantLock
  * 2. redirectCache: 短链接跳转目标 URL 缓存，减少 Redis 网络往返
  */
 @Configuration
-open class LocalCacheConfiguration {
+class LocalCacheConfiguration {
 
     /**
      * 跳转路径本地互斥锁缓存
@@ -23,7 +23,7 @@ open class LocalCacheConfiguration {
      * 设计目标：避免跳转热点 Key 的分布式锁放大故障域与尾延迟
      */
     @Bean("redirectLockCache")
-    open fun redirectLockCache(): Cache<String, ReentrantLock> =
+    fun redirectLockCache(): Cache<String, ReentrantLock> =
         Caffeine.newBuilder()
             .expireAfterAccess(Duration.ofSeconds(60))
             .initialCapacity(1024)
@@ -35,9 +35,10 @@ open class LocalCacheConfiguration {
      * 短链接跳转目标 URL 本地缓存
      * key: fullShortUrl, value: originUrl
      * 设计目标：减少 Redis 网络往返，提升热点短链接跳转性能
+     * 实际最大存储容量以及过期时间, 避免大量请求涌进服务器
      */
     @Bean("redirectCache")
-    open fun redirectCache(): Cache<String, String> =
+    fun redirectCache(): Cache<String, String> =
         Caffeine.newBuilder()
             .maximumSize(10_000L)
             .expireAfterAccess(Duration.ofMinutes(5))

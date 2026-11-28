@@ -12,9 +12,9 @@ import org.springframework.context.annotation.Configuration
 import java.io.IOException
 
 @Configuration
-open class FrontendSpaConfiguration {
+class FrontendSpaConfiguration {
     @Bean
-    open fun frontendSpaForwardFilter(): FilterRegistrationBean<Filter> =
+    fun frontendSpaForwardFilter(): FilterRegistrationBean<Filter> =
         FilterRegistrationBean<Filter>().apply {
             setFilter(FrontendSpaForwardFilter())
             addUrlPatterns("/app", "/app/*")

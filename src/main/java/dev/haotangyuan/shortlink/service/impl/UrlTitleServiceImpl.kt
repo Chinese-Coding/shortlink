@@ -10,7 +10,7 @@ import java.util.regex.Pattern
 
 /** 简化版 URL 标题获取 */
 @Service
-open class UrlTitleServiceImpl : UrlTitleService {
+class UrlTitleServiceImpl : UrlTitleService {
     @Suppress("DEPRECATION")
     override fun getTitleByUrl(url: String?): String {
         if (url == null || url.codePoints().allMatch(Character::isWhitespace)) {

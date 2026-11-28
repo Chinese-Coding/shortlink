@@ -21,14 +21,14 @@ import java.util.Locale
  * @author: haotangyuan
  */
 @Component
-open class LinkUtil(
+class LinkUtil(
     private val whiteListCfg: GotoDomainWhiteListConfiguration,
 ) {
 
     /**
      * 获取站点 favicon
      */
-    open fun getFavicon(url: String?): String? {
+    fun getFavicon(url: String?): String? {
         if (StrUtil.isBlank(url)) return null
         var u = url!!.trim()
         if (!u.matches(SCHEME_PATTERN)) {
@@ -36,7 +36,7 @@ open class LinkUtil(
         }
         val parsed: URL = try {
             URLUtil.url(u)
-        } catch (ex: Exception) {
+        } catch (_: Exception) {
             return null
         }
         val scheme = parsed.protocol
@@ -210,7 +210,7 @@ open class LinkUtil(
 
             val parsed: URL = try {
                 URLUtil.url(u)
-            } catch (ex: Exception) {
+            } catch (_: Exception) {
                 return null
             }
             var host: String? = parsed.host
@@ -220,7 +220,7 @@ open class LinkUtil(
             if (host.endsWith(".")) host = host.substring(0, host.length - 1)
             try {
                 host = IDN.toASCII(host)
-            } catch (ignore: Exception) {
+            } catch (_: Exception) {
             }
 
             // IP / localhost 直接忽略
@@ -231,7 +231,7 @@ open class LinkUtil(
                 if (idn.isUnderPublicSuffix || idn.isTopPrivateDomain) {
                     return idn.topPrivateDomain().toString() // eTLD+1
                 }
-            } catch (ignore: IllegalArgumentException) {
+            } catch (_: IllegalArgumentException) {
             }
             return null
         }
@@ -251,7 +251,7 @@ open class LinkUtil(
                 val protocol = parsed.protocol
                 ("http".equals(protocol, ignoreCase = true) || "https".equals(protocol, ignoreCase = true))
                     && extractDomain(normalized) != null
-            } catch (ex: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -284,7 +284,7 @@ open class LinkUtil(
                     }
                 }
                 true
-            } catch (ex: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }

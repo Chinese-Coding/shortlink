@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
  * @author haotangyuan
  */
 @Component
-open class LinkStatsStreamInitializeTask(private val stringRedisTemplate: StringRedisTemplate) : InitializingBean {
+class LinkStatsStreamInitializeTask(private val stringRedisTemplate: StringRedisTemplate) : InitializingBean {
     @Throws(Exception::class)
     override fun afterPropertiesSet() {
         // 从头消费，避免重建组时丢失消息。等价于 XGROUP CREATE key group 0 MKSTREAM。

@@ -11,7 +11,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @SpringBootApplication
 @EnableScheduling
 @MapperScan("dev.haotangyuan.shortlink.dao.mapper")
-open class ShortLinkApplication {
+class ShortLinkApplication {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {

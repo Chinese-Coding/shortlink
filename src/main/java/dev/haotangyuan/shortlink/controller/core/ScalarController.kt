@@ -8,10 +8,10 @@ import org.springframework.web.bind.annotation.GetMapping
 import java.io.IOException
 
 @Controller
-open class ScalarController {
+class ScalarController {
     @GetMapping("/scalar.html")
     @Throws(IOException::class)
-    open fun scalar(response: HttpServletResponse) {
+    fun scalar(response: HttpServletResponse) {
         response.contentType = MediaType.TEXT_HTML_VALUE
         ClassPathResource("static/scalar.html").inputStream.use { input ->
             response.outputStream.write(input.readAllBytes())

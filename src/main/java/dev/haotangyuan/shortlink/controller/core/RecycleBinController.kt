@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController
  * @author haotangyuan
  */
 @RestController
-open class RecycleBinController(private val recycleBinService: RecycleBinService) {
+class RecycleBinController(private val recycleBinService: RecycleBinService) {
 
     /**
      * 移至回收站
@@ -29,7 +29,7 @@ open class RecycleBinController(private val recycleBinService: RecycleBinService
      * @return Result<Void>
      */
     @PostMapping("/api/short-link/v1/recycle-bin/save")
-    open fun saveRecycledBin(@RequestBody recycleBinSaveReqDTO: RecycleBinSaveReqDTO): Result<Void> {
+    fun saveRecycledBin(@RequestBody recycleBinSaveReqDTO: RecycleBinSaveReqDTO): Result<Void> {
         recycleBinService.saveRecycledBin(recycleBinSaveReqDTO)
         return Results.success()
     }
@@ -41,7 +41,7 @@ open class RecycleBinController(private val recycleBinService: RecycleBinService
      * @return Result<IPage<LinkPageVO>>
      */
     @GetMapping("/api/short-link/v1/recycle-bin/page")
-    open fun pageRecycledBinLink(recycleBinLinkPageReqDTO: RecycleBinLinkPageReqDTO): Result<IPage<LinkPageVO>> =
+    fun pageRecycledBinLink(recycleBinLinkPageReqDTO: RecycleBinLinkPageReqDTO): Result<IPage<LinkPageVO>> =
         Results.success(recycleBinService.pageRecycleBinLink(recycleBinLinkPageReqDTO))
 
     /**
@@ -51,7 +51,7 @@ open class RecycleBinController(private val recycleBinService: RecycleBinService
      * @return Result<Void>
      */
     @PostMapping("/api/short-link/v1/recycle-bin/restore")
-    open fun restoreLink(@RequestBody recycleBinRestoreReqDTO: RecycleBinRestoreReqDTO): Result<Void> {
+    fun restoreLink(@RequestBody recycleBinRestoreReqDTO: RecycleBinRestoreReqDTO): Result<Void> {
         recycleBinService.restoreLink(recycleBinRestoreReqDTO)
         return Results.success()
     }
@@ -63,7 +63,7 @@ open class RecycleBinController(private val recycleBinService: RecycleBinService
      * @return Result<Void>
      */
     @PostMapping("/api/short-link/v1/recycle-bin/remove")
-    open fun removeLink(@RequestBody recycleBinRemoveReqDTO: RecycleBinRemoveReqDTO): Result<Void> {
+    fun removeLink(@RequestBody recycleBinRemoveReqDTO: RecycleBinRemoveReqDTO): Result<Void> {
         recycleBinService.removeLink(recycleBinRemoveReqDTO)
         return Results.success()
     }

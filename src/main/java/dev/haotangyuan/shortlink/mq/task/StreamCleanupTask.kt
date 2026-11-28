@@ -17,11 +17,11 @@ import org.springframework.stereotype.Component
  * @author haotangyuan
  */
 @Component
-open class StreamCleanupTask(private val stringRedisTemplate: StringRedisTemplate) {
+class StreamCleanupTask(private val stringRedisTemplate: StringRedisTemplate) {
     private var trimScript: DefaultRedisScript<Long>? = null
 
     @PostConstruct
-    open fun initTrimScript() {
+    fun initTrimScript() {
         trimScript = DefaultRedisScript<Long>().apply {
             resultType = Long::class.javaObjectType
             setScriptSource(ResourceScriptSource(ClassPathResource(STREAM_TRIM_MINID_LUA_PATH)))
@@ -29,7 +29,7 @@ open class StreamCleanupTask(private val stringRedisTemplate: StringRedisTemplat
     }
 
     @Scheduled(fixedRate = 300_000)
-    open fun cleanupConsumedMessages() {
+    fun cleanupConsumedMessages() {
         try {
             val trimmed = stringRedisTemplate.execute(
                 checkNotNull(trimScript),

@@ -24,11 +24,11 @@ import java.io.IOException
  * @author haotangyuan
  */
 @RestController
-open class LinkController(private val linkService: LinkService) {
+class LinkController(private val linkService: LinkService) {
 
     @GetMapping("/{shortUri}")
     @Throws(IOException::class)
-    open fun restoreUrl(@PathVariable shortUri: String, request: ServletRequest, response: ServletResponse) {
+    fun restoreUrl(@PathVariable shortUri: String, request: ServletRequest, response: ServletResponse) {
         linkService.restoreUrl(shortUri, request, response)
     }
 
@@ -38,14 +38,14 @@ open class LinkController(private val linkService: LinkService) {
      * @return Result
      */
     @PostMapping("/api/short-link/v1/create")
-    open fun createLink(@RequestBody linkCreateReqDTO: LinkCreateReqDTO): Result<LinkCreateVO> =
+    fun createLink(@RequestBody linkCreateReqDTO: LinkCreateReqDTO): Result<LinkCreateVO> =
         Results.success(linkService.createLink(linkCreateReqDTO))
 
     /**
      * 批量创建短链接
      */
     @PostMapping("/api/short-link/v1/create/batch")
-    open fun batchCreateShortLink(
+    fun batchCreateShortLink(
         @RequestBody linkBatchCreateReqDTO: LinkBatchCreateReqDTO,
     ): Result<LinkBatchCreateVO> =
         Results.success(linkService.batchCreateLink(linkBatchCreateReqDTO))
@@ -57,7 +57,7 @@ open class LinkController(private val linkService: LinkService) {
      * @return Result<Void>
      */
     @PostMapping("/api/short-link/v1/update")
-    open fun updateLink(@RequestBody linkUpdateReqDTO: LinkUpdateReqDTO): Result<Void> {
+    fun updateLink(@RequestBody linkUpdateReqDTO: LinkUpdateReqDTO): Result<Void> {
         linkService.updateLink(linkUpdateReqDTO)
         return Results.success()
     }
@@ -69,7 +69,7 @@ open class LinkController(private val linkService: LinkService) {
      * @return Result<IPage<LinkPageVO>>
      */
     @GetMapping("/api/short-link/v1/page")
-    open fun pageLink(linkPageReqDTO: LinkPageReqDTO): Result<IPage<LinkPageVO>> =
+    fun pageLink(linkPageReqDTO: LinkPageReqDTO): Result<IPage<LinkPageVO>> =
         Results.success(linkService.pageLink(linkPageReqDTO))
 
     /**
@@ -78,7 +78,7 @@ open class LinkController(private val linkService: LinkService) {
      * @return Result<List<GroupLinkCountQueryVO>>
      */
     @GetMapping("/api/short-link/v1/count")
-    open fun listGroupLinkCount(
+    fun listGroupLinkCount(
         @RequestParam("gidList") gidList: List<String>,
     ): Result<List<GroupLinkCountQueryVO>> =
         Results.success(linkService.listGroupLinkCount(gidList))

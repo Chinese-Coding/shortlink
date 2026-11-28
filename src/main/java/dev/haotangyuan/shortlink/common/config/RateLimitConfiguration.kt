@@ -10,16 +10,16 @@ import org.springframework.context.annotation.Configuration
  * @author haotangyuan
  */
 @Configuration
-open class RateLimitConfiguration {
+class RateLimitConfiguration {
 
     @Bean("createRateLimiter")
-    open fun createRateLimiter(p: RateLimitProperties): RateLimiter = rateLimiter(p.create ?: throw NullPointerException())
+    fun createRateLimiter(p: RateLimitProperties): RateLimiter = rateLimiter(p.create ?: throw NullPointerException())
 
     @Bean("redirectRateLimiter")
-    open fun redirectRateLimiter(p: RateLimitProperties): RateLimiter = rateLimiter(p.redirect ?: throw NullPointerException())
+    fun redirectRateLimiter(p: RateLimitProperties): RateLimiter = rateLimiter(p.redirect ?: throw NullPointerException())
 
     @Bean("statsRateLimiter")
-    open fun statsRateLimiter(p: RateLimitProperties): RateLimiter = rateLimiter(p.stats ?: throw NullPointerException())
+    fun statsRateLimiter(p: RateLimitProperties): RateLimiter = rateLimiter(p.stats ?: throw NullPointerException())
 
     private fun rateLimiter(detail: RateLimitProperties.DetailProperties): RateLimiter =
         RateLimiter.create(if (detail.enable == true) detail.rps else Double.MAX_VALUE)

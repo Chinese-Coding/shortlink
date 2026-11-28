@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController
  * @author haotangyuan
  */
 @RestController
-open class LinkAdminController(private val linkService: LinkService) {
+class LinkAdminController(private val linkService: LinkService) {
 
     /**
      * 创建短链接
@@ -31,14 +31,14 @@ open class LinkAdminController(private val linkService: LinkService) {
      * @return Result
      */
     @PostMapping("/api/short-link/admin/v1/create")
-    open fun createLink(@RequestBody linkCreateReqDTO: LinkCreateReqDTO): Result<LinkCreateVO> =
+    fun createLink(@RequestBody linkCreateReqDTO: LinkCreateReqDTO): Result<LinkCreateVO> =
         Results.success(linkService.createLink(linkCreateReqDTO))
 
     /**
      * 批量创建短链接
      */
     @PostMapping("/api/short-link/admin/v1/create/batch")
-    open fun batchCreateShortLink(
+    fun batchCreateShortLink(
         @RequestBody linkBatchCreateReqDTO: LinkBatchCreateReqDTO,
     ): Result<LinkBatchCreateVO> =
         Results.success(linkService.batchCreateLink(linkBatchCreateReqDTO))
@@ -50,7 +50,7 @@ open class LinkAdminController(private val linkService: LinkService) {
      * @return Result<Void>
      */
     @PostMapping("/api/short-link/admin/v1/update")
-    open fun updateLink(@RequestBody linkUpdateReqDTO: LinkUpdateReqDTO): Result<Void> {
+    fun updateLink(@RequestBody linkUpdateReqDTO: LinkUpdateReqDTO): Result<Void> {
         linkService.updateLink(linkUpdateReqDTO)
         return Results.success()
     }
@@ -62,6 +62,6 @@ open class LinkAdminController(private val linkService: LinkService) {
      * @return Result<IPage<LinkPageVO>>
      */
     @GetMapping("/api/short-link/admin/v1/page")
-    open fun pageLink(linkPageReqDTO: LinkPageReqDTO): Result<IPage<LinkPageVO>> =
+    fun pageLink(linkPageReqDTO: LinkPageReqDTO): Result<IPage<LinkPageVO>> =
         Results.success(linkService.pageLink(linkPageReqDTO))
 }

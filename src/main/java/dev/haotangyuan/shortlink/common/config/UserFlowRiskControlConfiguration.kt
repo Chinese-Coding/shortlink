@@ -10,21 +10,21 @@ import org.springframework.stereotype.Component
  */
 @Component
 @ConfigurationProperties(prefix = "short-link.flow-limit")
-open class UserFlowRiskControlConfiguration {
+class UserFlowRiskControlConfiguration {
     /**
      * 是否开启用户流量风控验证
      */
-    open var enable: Boolean? = null
+    var enable: Boolean? = null
 
     /**
      * 流量风控时间窗口，单位：秒
      */
-    open var timeWindow: String? = null
+    var timeWindow: String? = null
 
     /**
      * 流量风控时间窗口内可访问次数
      */
-    open var maxAccessCount: Long? = null
+    var maxAccessCount: Long? = null
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -34,7 +34,7 @@ open class UserFlowRiskControlConfiguration {
             maxAccessCount == other.maxAccessCount
     }
 
-    protected open fun canEqual(other: Any?): Boolean = other is UserFlowRiskControlConfiguration
+    protected fun canEqual(other: Any?): Boolean = other is UserFlowRiskControlConfiguration
 
     override fun hashCode(): Int {
         var result = 1

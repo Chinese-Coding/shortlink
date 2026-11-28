@@ -9,18 +9,18 @@ import org.springframework.context.annotation.Configuration
  * @author haotangyuan
  */
 @Configuration
-open class RBloomFilterConfiguration {
+class RBloomFilterConfiguration {
 
     /** 防止用户注册查询数据库的布隆过滤器 */
     @Bean
-    open fun userRegisterCachePenetrationBloomFilter(redissonClient: RedissonClient): RBloomFilter<String> =
+    fun userRegisterCachePenetrationBloomFilter(redissonClient: RedissonClient): RBloomFilter<String> =
         redissonClient.getBloomFilter<String>("userRegisterCachePenetrationBloomFilter").apply {
             tryInit(100_000_000L, 0.001)
         }
 
     /** 防止短链接创建查询数据库的布隆过滤器 */
     @Bean
-    open fun shortUriCreateCachePenetrationBloomFilter(redissonClient: RedissonClient): RBloomFilter<String> =
+    fun shortUriCreateCachePenetrationBloomFilter(redissonClient: RedissonClient): RBloomFilter<String> =
         redissonClient.getBloomFilter<String>("shortUriCreateCachePenetrationBloomFilter").apply {
             tryInit(100_000_000L, 0.001)
         }

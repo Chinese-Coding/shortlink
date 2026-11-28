@@ -10,7 +10,7 @@ import java.util.function.Supplier
  * @author haotangyuan
  */
 @Component
-open class MyMetaObjectHandler : MetaObjectHandler {
+class MyMetaObjectHandler : MetaObjectHandler {
     override fun insertFill(metaObject: MetaObject) {
         strictInsertFill(metaObject, "createTime", Supplier { Date() }, Date::class.java)
         strictInsertFill(metaObject, "updateTime", Supplier { Date() }, Date::class.java)

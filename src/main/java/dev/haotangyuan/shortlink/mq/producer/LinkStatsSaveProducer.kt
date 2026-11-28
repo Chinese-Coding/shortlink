@@ -10,9 +10,9 @@ import org.springframework.stereotype.Component
  * @author haotangyuan
  */
 @Component
-open class LinkStatsSaveProducer(private val stringRedisTemplate: StringRedisTemplate) {
+class LinkStatsSaveProducer(private val stringRedisTemplate: StringRedisTemplate) {
     /** 发送延迟消费短链接统计 */
-    open fun send(producerMap: Map<String, String>) {
+    fun send(producerMap: Map<String, String>) {
         stringRedisTemplate.opsForStream<String, String>().add(SHORT_LINK_STATS_STREAM_TOPIC_KEY, producerMap)
     }
 }

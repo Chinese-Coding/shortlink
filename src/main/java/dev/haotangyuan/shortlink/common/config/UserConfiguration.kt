@@ -16,10 +16,10 @@ import org.springframework.data.redis.core.StringRedisTemplate
  * @author haotangyuan
  */
 @Configuration
-open class UserConfiguration {
+class UserConfiguration {
     /** 用户信息传递过滤器 */
     @Bean
-    open fun globalUserTransmitFilter(
+    fun globalUserTransmitFilter(
         stringRedisTemplate: StringRedisTemplate,
         @Value("\${short-link.session-ttl-minutes:30}") sessionTtlMinutes: Int,
     ): FilterRegistrationBean<UserTransmitFilter> = FilterRegistrationBean<UserTransmitFilter>().apply {
@@ -31,7 +31,7 @@ open class UserConfiguration {
 
     /** Core API Token 过滤器 */
     @Bean
-    open fun coreApiTokenAuthFilter(stringRedisTemplate: StringRedisTemplate): FilterRegistrationBean<ApiTokenAuthFilter> =
+    fun coreApiTokenAuthFilter(stringRedisTemplate: StringRedisTemplate): FilterRegistrationBean<ApiTokenAuthFilter> =
         FilterRegistrationBean<ApiTokenAuthFilter>().apply {
             setFilter(ApiTokenAuthFilter(stringRedisTemplate))
             addUrlPatterns("/api/short-link/v1/*")
@@ -41,7 +41,7 @@ open class UserConfiguration {
     /** 用户操作流量风控过滤器 */
     @Bean
     @ConditionalOnProperty(name = ["short-link.flow-limit.enable"], havingValue = "true")
-    open fun globalUserFlowRiskControlFilter(
+    fun globalUserFlowRiskControlFilter(
         stringRedisTemplate: StringRedisTemplate,
         userFlowRiskControlConfiguration: UserFlowRiskControlConfiguration,
     ): FilterRegistrationBean<UserFlowRiskControlFilter> = FilterRegistrationBean<UserFlowRiskControlFilter>().apply {

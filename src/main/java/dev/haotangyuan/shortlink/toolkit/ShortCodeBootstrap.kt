@@ -10,12 +10,13 @@ import org.springframework.stereotype.Component
  * @author haotangyuan
  */
 @Component
-open class ShortCodeBootstrap(
+class ShortCodeBootstrap(
     private val stringRedisTemplate: StringRedisTemplate,
     private val shortCodeProps: ShortCodeProps,
 ) {
     @PostConstruct
-    open fun init() {
+    fun init() {
+        println("preload the ShortCodeGenerator!")
         ShortCodeUtil.init(stringRedisTemplate, shortCodeProps)
     }
 }

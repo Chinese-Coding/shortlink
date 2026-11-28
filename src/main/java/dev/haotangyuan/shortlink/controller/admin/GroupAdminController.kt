@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*
  * @author haotangyuan
  */
 @RestController
-open class GroupAdminController(private val groupService: GroupService) {
+class GroupAdminController(private val groupService: GroupService) {
 
     /**
      * 创建短链接分组分组
@@ -24,7 +24,7 @@ open class GroupAdminController(private val groupService: GroupService) {
      * @return
      */
     @PostMapping("/api/short-link/admin/v1/group")
-    open fun create(@RequestBody groupSaveReqDTO: GroupSaveReqDTO): Result<Void> {
+    fun create(@RequestBody groupSaveReqDTO: GroupSaveReqDTO): Result<Void> {
         groupService.saveGroup(groupSaveReqDTO.name)
         return Results.success()
     }
@@ -35,7 +35,7 @@ open class GroupAdminController(private val groupService: GroupService) {
      * @return
      */
     @GetMapping("/api/short-link/admin/v1/group")
-    open fun listGroup(): Result<List<GroupVO>> =
+    fun listGroup(): Result<List<GroupVO>> =
         Results.success(groupService.listGroup())
 
     /**
@@ -45,7 +45,7 @@ open class GroupAdminController(private val groupService: GroupService) {
      * @return
      */
     @PutMapping("/api/short-link/admin/v1/group")
-    open fun updateGroup(@RequestBody groupUpdateReqDTO: GroupUpdateReqDTO): Result<Void> {
+    fun updateGroup(@RequestBody groupUpdateReqDTO: GroupUpdateReqDTO): Result<Void> {
         groupService.updateGroup(groupUpdateReqDTO)
         return Results.success()
     }
@@ -57,7 +57,7 @@ open class GroupAdminController(private val groupService: GroupService) {
      * @return
      */
     @DeleteMapping("/api/short-link/admin/v1/group")
-    open fun deleteGroup(@RequestParam gid: String): Result<Void> {
+    fun deleteGroup(@RequestParam gid: String): Result<Void> {
         groupService.deleteGroup(gid)
         return Results.success()
     }
@@ -69,7 +69,7 @@ open class GroupAdminController(private val groupService: GroupService) {
      * @return
      */
     @PostMapping("/api/short-link/admin/v1/group/sort")
-    open fun sortGroup(@RequestBody groupSortReqDTOs: MutableList<GroupSortReqDTO>): Result<Void> {
+    fun sortGroup(@RequestBody groupSortReqDTOs: MutableList<GroupSortReqDTO>): Result<Void> {
         groupService.sortGroup(groupSortReqDTOs)
         return Results.success()
     }

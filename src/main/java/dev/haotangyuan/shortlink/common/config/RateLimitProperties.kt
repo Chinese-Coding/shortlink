@@ -10,10 +10,10 @@ import org.springframework.stereotype.Component
  */
 @Component
 @ConfigurationProperties(prefix = "short-link.rate-limit")
-open class RateLimitProperties {
-    open var create: DetailProperties? = DetailProperties()
-    open var redirect: DetailProperties? = DetailProperties()
-    open var stats: DetailProperties? = DetailProperties()
+class RateLimitProperties {
+    var create: DetailProperties? = DetailProperties()
+    var redirect: DetailProperties? = DetailProperties()
+    var stats: DetailProperties? = DetailProperties()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -23,7 +23,7 @@ open class RateLimitProperties {
             stats == other.stats
     }
 
-    protected open fun canEqual(other: Any?): Boolean = other is RateLimitProperties
+    protected fun canEqual(other: Any?): Boolean = other is RateLimitProperties
 
     override fun hashCode(): Int {
         var result = 1
