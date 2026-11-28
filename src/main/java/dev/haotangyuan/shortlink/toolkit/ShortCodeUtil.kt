@@ -114,6 +114,7 @@ object ShortCodeUtil {
     private fun nextId(): Long {
         while (true) {
             val c = cursor.getAndIncrement()
+            // 号段还有余量时直接返回, 余量低于阈值时异步向 Redis 领取下一段
             if (c <= end) {
                 maybePrefetch()
                 return c
@@ -128,6 +129,7 @@ object ShortCodeUtil {
 
             // 慢路径：同步取段并切换（仅一个线程进入），无论是否切换，处理完都回到循环重试
             synchronized(LOCK) {
+                // 如果其他线程拿到锁并更新了, 就提前结束传给 `synchronized` 的代码块
                 if (cursor.get() <= end) {
                     return@synchronized
                 }
@@ -146,6 +148,7 @@ object ShortCodeUtil {
         val rem = end - cursor.get() + 1
         if (rem > (segmentStep * prefetchRatio).toLong()) return
         if (!prefetching.compareAndSet(false, true)) return
+        // todo: 感觉这里可以用 kotlin 的协程啊
         CompletableFuture.runAsync {
             try {
                 val seg = fetchFromRedis()
@@ -171,6 +174,7 @@ object ShortCodeUtil {
      */
     private fun fetchFromRedis(): Segment {
         ensureInit()
+        // increment 对应 redis 里面的 increment
         val value = stringRedisTemplate.opsForValue().increment(SHORT_CODE_ALLOCATION_KEY, segmentStep)
             ?: throw IllegalStateException("Redis INCRBY returned null")
         val newEnd = value - 1

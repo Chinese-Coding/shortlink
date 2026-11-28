@@ -41,16 +41,17 @@ public class LinkStatsServiceImpl implements LinkStatsService {
 
     @Override
     public LinkStatsVO oneShortLinkStats(LinkStatsReqDTO linkStatsReqDTO) {
-        linkStatsReqDTO.setEndDate(normalizeAndValidateEndDate(
-                linkStatsReqDTO.getStartDate(), linkStatsReqDTO.getEndDate()));
+        linkStatsReqDTO.setEndDate(
+                normalizeAndValidateEndDate(linkStatsReqDTO.getStartDate(), linkStatsReqDTO.getEndDate())
+        );
         if (linkStatsReqDTO.getEnableStatus() == null) {
             linkStatsReqDTO.setEnableStatus(0);
         }
         groupOwnershipService.assertOwnedByCurrentUser(linkStatsReqDTO.getGid());
-        List<LinkAccessStatsDO> statsResult = linkAccessStatsMapper.listStatsByShortLink(linkStatsReqDTO);
+        var statsResult = linkAccessStatsMapper.listStatsByShortLink(linkStatsReqDTO);
         final List<LinkAccessStatsDO> listStatsByShortLink = CollUtil.isEmpty(statsResult) ? Collections.emptyList() : statsResult;
         // 基础访问数据（从访问日志表汇总，不依赖 stats 聚合表）
-        LinkAccessStatsDO pvUvUidStatsByShortLink = linkAccessLogsMapper.findPvUvUidStatsByShortLink(linkStatsReqDTO);
+        var pvUvUidStatsByShortLink = linkAccessLogsMapper.findPvUvUidStatsByShortLink(linkStatsReqDTO);
         if (pvUvUidStatsByShortLink == null) {
             pvUvUidStatsByShortLink = new LinkAccessStatsDO();
         }
